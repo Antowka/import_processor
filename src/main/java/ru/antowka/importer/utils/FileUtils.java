@@ -27,13 +27,28 @@ public class FileUtils {
         try (Stream<Path> stream = Files.walk(startPath, MAX_DEPTH)) {
 
             if (!StringUtils.isEmpty(subString)) {
+                final int countLine[] = new int[1];
                 return stream
                         .filter(p -> {
                             if (Files.isDirectory(p)) {
                                 return false;
                             }
                             try {
-                                return Files.lines(p).anyMatch(line -> line.contains(subString));
+
+                                //Ограничиваем 10кб
+                                if (Files.size(p) > 10*1024) {
+                                    return false;
+                                }
+
+                                //ограничение на чтение кол-ва строк в файле
+                                countLine[0] = 5;
+                                return Files.lines(p).anyMatch(line -> {
+                                    if (countLine[0] > 0) {
+                                        return line.contains(subString);
+                                    }
+                                    countLine[0]--;
+                                    return false;
+                                });
                             } catch (Exception e) {
                                 //e.printStackTrace();
                             }

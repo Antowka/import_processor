@@ -9,12 +9,16 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.HashSet;
+import java.util.Set;
 
 public class FileReader<T>  extends FlatFileItemReader<T> {
 
     private LineMapper<T> lineMapper;
 
     private Resource resource;
+
+    private Set<String> readFiles = new HashSet<>();
 
     @Override
     public void setResource(Resource resource) {
@@ -46,7 +50,15 @@ public class FileReader<T>  extends FlatFileItemReader<T> {
     @Nullable
     private String readLine() {
         try {
-            return new String(Files.readAllBytes(Paths.get(resource.getFile().getPath())), StandardCharsets.UTF_8);
+            final String path = resource.getFile().getPath();
+
+            //Чтобы читать по файлам, а не по строкам
+            if (readFiles.contains(path)) {
+                return null;
+            }
+
+            readFiles.add(path);
+            return new String(Files.readAllBytes(Paths.get(path)), StandardCharsets.UTF_8);
         } catch (IOException e) {
             e.printStackTrace();
             System.out.println("Couldn't read file with path: " + resource.toString());

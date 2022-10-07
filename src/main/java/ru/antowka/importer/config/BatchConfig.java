@@ -1,8 +1,11 @@
 package ru.antowka.importer.config;
 
+import org.springframework.batch.core.Job;
+import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.item.file.MultiResourceItemReader;
 import org.springframework.batch.item.file.builder.MultiResourceItemReaderBuilder;
 import org.springframework.batch.item.json.JacksonJsonObjectMarshaller;
@@ -18,7 +21,7 @@ import org.springframework.util.CollectionUtils;
 import ru.antowka.importer.mapper.NodeMapper;
 import ru.antowka.importer.model.DateFolderModel;
 import ru.antowka.importer.model.NodeModel;
-import ru.antowka.importer.processing.FileProcessor;
+import ru.antowka.importer.processing.AttachmentsProcessor;
 import ru.antowka.importer.processing.FileReader;
 import ru.antowka.importer.utils.FileUtils;
 
@@ -74,8 +77,8 @@ public class BatchConfig {
     }
 
     @Bean
-    public FileProcessor processor() {
-        return new FileProcessor();
+    public AttachmentsProcessor processor() {
+        return new AttachmentsProcessor();
     }
 
     @Bean
@@ -94,6 +97,16 @@ public class BatchConfig {
         final FileReader<NodeModel> nodeModelFileReader = new FileReader<>();
         nodeModelFileReader.setLineMapper(new NodeMapper());
         return nodeModelFileReader;
+    }
+
+    @Bean
+    public Job readHtmlFilesJob() {
+        return jobBuilderFactory.get("readHtmlFilesJob")
+                .incrementer(new RunIdIncrementer())
+                //.listener(new JobResultListener())
+                .flow(addAttachmentsStep())
+                .end()
+                .build();
     }
 
 
@@ -116,7 +129,7 @@ public class BatchConfig {
 
         while (!startDate.equals(endDate)) {
             final Path path = Paths.get(pathToContentStore, startDate.buildPath());
-            final List<Path> allFilesFromSubFolders = FileUtils.getAllFilesFromSubFolders(path, "<html>");
+            final List<Path> allFilesFromSubFolders = FileUtils.getAllFilesFromSubFolders(path, "<h3><a href");
 
             //переходим на следующий день для следующий итерации
             startDate.addDay();
@@ -134,5 +147,19 @@ public class BatchConfig {
         }
 
         return resources.toArray(new Resource[]{});
+    }
+
+
+    //ШАГИ
+    @Bean
+    public Step addAttachmentsStep() {
+        return stepBuilderFactory.get("addAttachmentsStep")
+                //.listener(new StepResultListener())
+                .<NodeModel, NodeModel>chunk(6)
+                .reader(multiResourceItemReader())
+                .faultTolerant()
+                .processor(processor())
+                .writer(writer())
+                .build();
     }
 }
