@@ -3,19 +3,36 @@ package ru.antowka.importer.mapper;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
-import org.springframework.stereotype.Component;
+import org.springframework.batch.item.file.LineMapper;
 import ru.antowka.importer.dictionary.PropsNames;
 import ru.antowka.importer.model.NodeModel;
 import ru.antowka.importer.model.PropModel;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Component
-public class MapToNode {
+public class NodeMapper implements LineMapper<NodeModel> {
+
+    /**
+     * Используется для Batch-a в reader-e
+     *
+     * @param stringOfHtmlFile
+     * @param lineNumber
+     * @return
+     * @throws Exception
+     */
+    @Override
+    public NodeModel mapLine(String stringOfHtmlFile, int lineNumber) throws Exception {
+
+        final Document htmlDocument = Jsoup.parse(stringOfHtmlFile, "UTF-8");
+        final Elements linkForDocument = htmlDocument.getElementsByAttribute("href");
+        if (Objects.isNull(linkForDocument) || linkForDocument.isEmpty()) {
+            System.out.println("Not found element for Link");
+        }
+        final NodeModel nodeModel = new NodeModel();
+        return nodeModel;
+    }
 
     /**
      * Конвертируем строки с props-ами разделённые двоеточием в объект Node
@@ -41,22 +58,4 @@ public class MapToNode {
                 })
                 .collect(Collectors.toSet());
     }
-
-    public NodeModel mapModel(File file) {
-        final Document htmlDocument;
-        try {
-            htmlDocument = Jsoup.parse(file,  "UTF-8");
-        } catch (IOException e) {
-            System.out.println("File is broken or empty: " + file.getPath());
-            return null;
-        }
-
-        final Elements linkForDocument = htmlDocument.getElementsByAttribute("href");
-        if (Objects.isNull(linkForDocument) || linkForDocument.isEmpty()) {
-            System.out.println("Not found element for Link");
-        }
-        final NodeModel nodeModel = new NodeModel();
-        return nodeModel;
-    }
-
 }

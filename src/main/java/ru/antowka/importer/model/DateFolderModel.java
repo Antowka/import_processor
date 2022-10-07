@@ -57,8 +57,8 @@ public class DateFolderModel {
      *
      * @return
      */
-    public Path buildPath() {
-        return Paths.get(String.valueOf(year), String.valueOf(month), String.valueOf(day));
+    public String buildPath() {
+        return Paths.get(String.valueOf(year), String.valueOf(month), String.valueOf(day)).toString();
     }
 
     /**
