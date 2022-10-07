@@ -16,7 +16,7 @@ public class PropsNames {
         put("Флаг для отключения действий на статусе", new PropModel("lecm-resolutions:hold-on-project", PropModel.PropType.BOOLEAN));
         put("Строка представления для списка: Статус", new PropModel("lecm-document:list-present-string", PropModel.PropType.STRING));
         put("Краткое содержание", new PropModel("lecm-document:title", PropModel.PropType.STRING));
-        put("Срок исполнения - дней", new PropModel("lecm-resolutions:limitation-date-days", PropModel.PropType.INT);
+        put("Срок исполнения - дней", new PropModel("lecm-resolutions:limitation-date-days", PropModel.PropType.INT));
         put("Создание в черновик", new PropModel("lecm-resolutions:is-draft", PropModel.PropType.BOOLEAN));
         put("Организация", new PropModel("lecm-orgstr-aspects:linked-organization-assoc-text-content", PropModel.PropType.STRING));
         put("Состояние подписания", new PropModel("lecm-signing-v2-aspects:signingState", PropModel.PropType.STRING));
@@ -35,7 +35,7 @@ public class PropsNames {
         put("Номер проекта", new PropModel("lecm-document-aspects:reg-project-data-number", PropModel.PropType.STRING));
         put("Номер резолюции", new PropModel("lecm-resolutions:number", PropModel.PropType.STRING));
         put("Подписанты", new PropModel("lecm-signing-v2-aspects:signerEmployeeAssoc-text-content", PropModel.PropType.STRING));
-        put("Сигнал об аннулировании", new PropModel("lecm-resolutions:annul-signal", PropModel.PropType.BOOLEAN);
+        put("Сигнал об аннулировании", new PropModel("lecm-resolutions:annul-signal", PropModel.PropType.BOOLEAN));
         put("Подразделение владелец документа", new PropModel("lecm-eds-aspect:eds-document-org-unit-owner-assoc-text-content", PropModel.PropType.STRING));
         put("Дата регистрации проекта", new PropModel("lecm-document-aspects:reg-project-data-date", PropModel.PropType.DATE));
         put("Автозавершение (служебное)", new PropModel("lecm-resolutions:auto-complete", PropModel.PropType.BOOLEAN));
