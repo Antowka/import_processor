@@ -15,6 +15,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.util.CollectionUtils;
+import ru.antowka.importer.mapper.NodeMapper;
 import ru.antowka.importer.model.DateFolderModel;
 import ru.antowka.importer.model.NodeModel;
 import ru.antowka.importer.processing.FileProcessor;
@@ -54,13 +55,13 @@ public class BatchConfig {
     /**
      * Абсолютный путь к результатирующему файлу
      */
-    @Value("#{file.output}")
+    @Value("${path.file.output}")
     private String outputFile;
 
     /**
      * Абсолютный путь к contentstore
      */
-    @Value("#{path.to.contentstore}")
+    @Value("${path.to.contentstore}")
     private String pathToContentStore;
 
     @Bean
@@ -68,6 +69,7 @@ public class BatchConfig {
         return new MultiResourceItemReaderBuilder<NodeModel>()
                 .delegate(reader())
                 .resources(getFilesForProcessing())
+                .name("multiReader")
                 .build();
     }
 
@@ -78,18 +80,20 @@ public class BatchConfig {
 
     @Bean
     public JsonFileItemWriter<NodeModel> writer() {
-            JsonFileItemWriterBuilder<NodeModel> builder = new JsonFileItemWriterBuilder<>();
-            JacksonJsonObjectMarshaller<NodeModel> marshaller = new JacksonJsonObjectMarshaller<>();
-            return builder
-                    .name("jsonNodeModelWriter")
-                    .jsonObjectMarshaller(marshaller)
-                    .resource(new FileSystemResource(outputFile))
-                    .build();
+        JsonFileItemWriterBuilder<NodeModel> builder = new JsonFileItemWriterBuilder<>();
+        JacksonJsonObjectMarshaller<NodeModel> marshaller = new JacksonJsonObjectMarshaller<>();
+        return builder
+                .name("jsonNodeModelWriter")
+                .jsonObjectMarshaller(marshaller)
+                .resource(new FileSystemResource(outputFile))
+                .build();
     }
 
     @Bean
     public FileReader<NodeModel> reader() {
-        return new FileReader<>();
+        final FileReader<NodeModel> nodeModelFileReader = new FileReader<>();
+        nodeModelFileReader.setLineMapper(new NodeMapper());
+        return nodeModelFileReader;
     }
 
 
@@ -114,10 +118,12 @@ public class BatchConfig {
             final Path path = Paths.get(pathToContentStore, startDate.buildPath());
             final List<Path> allFilesFromSubFolders = FileUtils.getAllFilesFromSubFolders(path, "<html>");
 
+            //переходим на следующий день для следующий итерации
+            startDate.addDay();
+
             //Если файлы не нашли
             if (CollectionUtils.isEmpty(allFilesFromSubFolders)) {
-                System.out.println("Files not found in path: " + path);
-                break;
+                continue;
             }
 
             final List<Resource> newResourcesOfFoundFiles = allFilesFromSubFolders
@@ -125,9 +131,6 @@ public class BatchConfig {
                     .map(FileSystemResource::new)
                     .collect(Collectors.toList());
             resources.addAll(newResourcesOfFoundFiles);
-
-            //переходим на следующий день для следующий итерации
-            startDate.addDay();
         }
 
         return resources.toArray(new Resource[]{});

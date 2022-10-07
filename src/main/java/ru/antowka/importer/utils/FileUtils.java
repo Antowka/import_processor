@@ -3,6 +3,7 @@ package ru.antowka.importer.utils;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -28,18 +29,21 @@ public class FileUtils {
             if (!StringUtils.isEmpty(subString)) {
                 return stream
                         .filter(p -> {
+                            if (Files.isDirectory(p)) {
+                                return false;
+                            }
                             try {
                                 return Files.lines(p).anyMatch(line -> line.contains(subString));
-                            } catch (IOException e) {
-                                e.printStackTrace();
+                            } catch (Exception e) {
+                                //e.printStackTrace();
                             }
                             return false;
                         }).collect(Collectors.toList());
             }
 
             return stream.collect(Collectors.toList());
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            System.out.println("Directory doesn't exist: " + startPath.toString());
         }
 
         return null;
