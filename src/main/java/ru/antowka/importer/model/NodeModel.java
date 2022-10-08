@@ -13,6 +13,8 @@ public class NodeModel {
 
     private Set<PropModel> props;
 
+    private Set<ApprovalModel> approvalData;
+
     public NodeModel() {
     }
 
@@ -20,5 +22,12 @@ public class NodeModel {
         this.nodeRef = nodeRef;
         this.name = name;
         this.props = props;
+    }
+
+    public NodeModel(String nodeRef, String name, Set<PropModel> props, Set<ApprovalModel> approvalData) {
+        this.nodeRef = nodeRef;
+        this.name = name;
+        this.props = props;
+        this.approvalData = approvalData;
     }
 }
