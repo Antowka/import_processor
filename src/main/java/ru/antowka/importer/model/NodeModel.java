@@ -14,7 +14,7 @@ public class NodeModel {
 
     private Set<PropModel> props;
 
-    private Set<ApprovalModel> approvalData;
+    private List<ApprovalModel> approvalData;
 
     private List<Attachment> attachmentsData;
 
@@ -27,14 +27,14 @@ public class NodeModel {
         this.props = props;
     }
 
-    public NodeModel(String nodeRef, String name, Set<PropModel> props, Set<ApprovalModel> approvalData) {
+    public NodeModel(String nodeRef, String name, Set<PropModel> props, List<ApprovalModel> approvalData) {
         this.nodeRef = nodeRef;
         this.name = name;
         this.props = props;
         this.approvalData = approvalData;
     }
 
-    public NodeModel(String nodeRef, String name, Set<PropModel> props, Set<ApprovalModel> approvalData , List attachmentsData) {
+    public NodeModel(String nodeRef, String name, Set<PropModel> props, List<ApprovalModel> approvalData , List attachmentsData) {
         this.nodeRef = nodeRef;
         this.name = name;
         this.props = props;

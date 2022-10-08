@@ -8,9 +8,7 @@ import ru.antowka.importer.entitiy.NotificationRecord;
 import ru.antowka.importer.mapper.NotificationRowMapper;
 import ru.antowka.importer.model.ApprovalModel;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Service
 public class NotificationServiceImpl implements NotificationService {
@@ -22,7 +20,7 @@ public class NotificationServiceImpl implements NotificationService {
     private JdbcTemplate jdbcTemplate;
 
     @Override
-    public Set<ApprovalModel> getApproversForDocument(String docRef) {
+    public List<ApprovalModel> getApproversForDocument(String docRef) {
         List<NotificationRecord> records = jdbcTemplate.query("SELECT * FROM \"NOTIFICATIONSTORERECORD\" WHERE \"OBJECT\" = '" + docRef + "' AND \"TEMPLATE\" = '" + TEMPLATE_APPROVAL_DIRECT + "'",
                 new NotificationRowMapper());
         Set<ApprovalModel> approvalData = new HashSet<>();
@@ -31,6 +29,6 @@ public class NotificationServiceImpl implements NotificationService {
             approvalModel.setApproverRef(record.getRecipient());
             approvalData.add(approvalModel);
         }
-        return approvalData;
+        return new ArrayList<ApprovalModel>(approvalData);
     }
 }
