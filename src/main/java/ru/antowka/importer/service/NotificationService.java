@@ -1,11 +1,8 @@
 package ru.antowka.importer.service;
 
-import ru.antowka.importer.model.ApprovalModel;
-
-import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 public interface NotificationService {
 
-    List<ApprovalModel> getApproversForDocument(String docRef);
+    Map<String, String> getApproversForDocument(String docRef);
 }

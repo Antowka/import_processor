@@ -42,5 +42,6 @@ public class Attachment {
     public void setInitiator(String initiator) {
         this.initiator = initiator;
     }
+
 }
 

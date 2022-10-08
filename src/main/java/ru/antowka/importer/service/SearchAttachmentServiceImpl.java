@@ -1,10 +1,5 @@
 package ru.antowka.importer.service;
 
-import org.apache.poi.EncryptedDocumentException;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.hwpf.HWPFDocument;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,12 +7,10 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import ru.antowka.importer.mapper.AttachmentRowMapper;
 import ru.antowka.importer.model.Attachment;
-import ru.antowka.importer.model.Attachments;
 import ru.antowka.importer.entitiy.BjRecord;
 import ru.antowka.importer.model.Path;
 
 import java.io.*;
-import java.sql.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -38,35 +31,16 @@ public class SearchAttachmentServiceImpl implements SearchAttachmentService {
 
 
     public String checkFile(File file) throws IOException {
-        FileReader fr = new FileReader(file);
-        BufferedReader reader = new BufferedReader(fr);
-        String line = reader.readLine();
         InputStream is = new FileInputStream(file);
-        if (line.contains("PDF")) {
-            return "pdf";
-        } else {
-            try {
-                new HWPFDocument(is);
-                return "doc";
-            } catch (EncryptedDocumentException e) {
-            }
-            try {
-                new HSSFWorkbook(is);
-                return "xls";
-            } catch (EncryptedDocumentException e) {
-            }
-            try {
-                new XWPFDocument(is);
-                return "docx";
-            } catch (EncryptedDocumentException e) {
-            }
-            try {
-                new XSSFWorkbook(is);
-                return "xlsx";
-            } catch (EncryptedDocumentException e) {
-            }
-
+        char[] chars = new char[10];
+        for (int i = 0; i < 10; i++){
+            chars[i] =(char) is.read();
         }
+        if (new String(chars) != null && new String(chars).contains("PDF")) {
+            is.close();
+            return "pdf";
+        }
+        is.close();
         return "-";
     }
 
@@ -81,7 +55,9 @@ public class SearchAttachmentServiceImpl implements SearchAttachmentService {
                 String record = bj.getRecord();
                 String name = record.substring(record.indexOf(bj.getRefAttachment(), 1), record.indexOf("к документу"));
                 attachment.setNameAttachment(name.substring(name.indexOf(">") + 1, name.length() - 5));
-                attachment.setCategory(record.substring(record.indexOf("в категорию") + 13, record.length() - 1));
+                if (record.indexOf("в категорию") > 0) {
+                    attachment.setCategory(record.substring(record.indexOf("в категорию") + 13, record.length() - 1));
+                }
                 attachment.setInitiator(bj.getInitiator());
                 String path1 = pathToContentStore + (bj.getDate().toString().substring(0, 4)) + "/" +
                         Integer.valueOf(bj.getDate().toString().substring(5, 7)) + "/"
@@ -112,10 +88,10 @@ public class SearchAttachmentServiceImpl implements SearchAttachmentService {
                 List<File> lst = Arrays.asList(arrFiles);
                 for (File file : lst) {
                     String type = checkFile(file);
-                    if (type !="-") {
+                    if (type != "-") {
                         Path path = new Path();
                         path.setPath(file.toPath().toString());
-                        path.setPath(type);
+                        path.setType(type);
                         paths.add(path);
                     }
                 }

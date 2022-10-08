@@ -11,4 +11,5 @@ public class NotificationRecord {
 
     private Date date;
     private String recipient;
+    private String content;
 }
