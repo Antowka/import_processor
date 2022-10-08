@@ -2,8 +2,10 @@ package ru.antowka.importer.model;
 
 import java.util.ArrayList;
 import java.util.List;
-
+//Пока не используется
 public class Attachments {
+    private String nodeRefDocuments;
+    List <Attachment> Attachment = new ArrayList<>();
     public String getNodeRefDocuments() {
         return nodeRefDocuments;
     }
@@ -19,8 +21,5 @@ public class Attachments {
     public void setAttachment(List<Attachment> attachment) {
         Attachment = attachment;
     }
-
-    private String nodeRefDocuments;
-    List <Attachment> Attachment = new ArrayList<>();
 }
 

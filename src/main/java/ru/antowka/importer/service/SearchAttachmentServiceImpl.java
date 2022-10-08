@@ -70,8 +70,7 @@ public class SearchAttachmentServiceImpl implements SearchAttachmentService {
         return "-";
     }
 
-    public Attachments searchAttachmentsDocument(String nodeRef) throws IOException {
-        Attachments attachments = new Attachments();
+    public List<Attachment> searchAttachmentsDocument(String nodeRef) throws IOException {
         String query = "SELECT \"DATE\" , \"INITIATOR\" , \"RECORDDESCRIPTION\" , \"OBJECT1\"   FROM \"BUSINESSJOURNALSTORERECORD\" where \"EVENTCATEGORYTEXT\" = 'Добавление вложения' AND \"MAINOBJECT\" ='" + nodeRef + "'";
         List<BjRecord> bjList = jdbcTemplate.query(query, new AttachmentRowMapper());
         List<Attachment> attachmentList = new ArrayList<>();
@@ -126,8 +125,6 @@ public class SearchAttachmentServiceImpl implements SearchAttachmentService {
         } else {
             System.out.println("Нет записей в bj по данному документу " + nodeRef);
         }
-        attachments.setAttachment(attachmentList);
-        attachments.setNodeRefDocuments(nodeRef);
-        return attachments;
+        return attachmentList;
     }
 }
