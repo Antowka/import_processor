@@ -1,10 +1,19 @@
-package ru.antowka.importer.attachment;
+package ru.antowka.importer.service;
+
 import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.hwpf.HWPFDocument;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
-import  ru.antowka.importer.model.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Service;
+import ru.antowka.importer.model.Attachment;
+import ru.antowka.importer.model.Attachments;
+import ru.antowka.importer.model.BjInfo;
+import ru.antowka.importer.model.Path;
 
 import java.io.*;
 import java.sql.*;
@@ -12,8 +21,21 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class SearchAttachment {
-    public static String checkFile(File file) throws IOException {
+@Service
+public class SearchAttachmentServiceImpl implements SearchAttachmentService {
+
+    @Autowired
+    @Qualifier("bjJdbcTemplate")
+    private JdbcTemplate jdbcTemplate;
+
+    /**
+     * Абсолютный путь к contentstore
+     */
+    @Value("${path.to.contentstore}")
+    private String pathToContentStore;
+
+
+    public String checkFile(File file) throws IOException {
         FileReader fr = new FileReader(file);
         BufferedReader reader = new BufferedReader(fr);
         String line = reader.readLine();
@@ -24,7 +46,7 @@ public class SearchAttachment {
             try {
                 new HWPFDocument(is);
                 return "doc";
-            } catch (EncryptedDocumentException e){
+            } catch (EncryptedDocumentException e) {
             }
             try {
                 new HSSFWorkbook(is);
@@ -45,10 +67,10 @@ public class SearchAttachment {
         }
         return "-";
     }
-    public static Attachments checkDocument (String url, String user, String password, String nodeRef) throws SQLException, IOException {
+
+    public Attachments checkDocument(String url, String user, String password, String nodeRef) throws SQLException, IOException {
         Connection con = DriverManager.getConnection(url, user, password);
-        String base_path = "C:/alfresco-rn/alf_data/contentstore/";
-        List<Timestamp> dates = new ArrayList<Timestamp>();
+
         List<BjInfo> bjList = new ArrayList<>();
         Attachments attachments = new Attachments();
         try {
@@ -60,7 +82,6 @@ public class SearchAttachment {
                 bj.setDate(rs.getTimestamp(1));
                 bj.setRecord(rs.getString(3));
                 bj.setRefAttachment(rs.getString(4));
-                dates.add(rs.getTimestamp(1));
                 bjList.add(bj);
             }
             List<Attachment> attachmentList = new ArrayList<>();
@@ -74,12 +95,12 @@ public class SearchAttachment {
                     attachment.setNameAttachment(name.substring(name.indexOf(">") + 1, name.length() - 5));
                     attachment.setCategory(record.substring(record.indexOf("в категорию") + 13, record.length() - 1));
                     attachment.setInitiator(bj.getInitiator());
-                    String path1 = base_path + (bj.getDate().toString().substring(0, 4)) + "/" +
+                    String path1 = pathToContentStore + (bj.getDate().toString().substring(0, 4)) + "/" +
                             Integer.valueOf(bj.getDate().toString().substring(5, 7)) + "/"
                             + Integer.valueOf(bj.getDate().toString().substring(8, 10)) + "/"
                             + Integer.valueOf(bj.getDate().toString().substring(11, 13)) + "/"
                             + Integer.valueOf(bj.getDate().toString().substring(14, 16));
-                    String path2 = base_path + (bj.getDate().toString().substring(0, 4)) + "/" +
+                    String path2 = pathToContentStore + (bj.getDate().toString().substring(0, 4)) + "/" +
                             Integer.valueOf(bj.getDate().toString().substring(5, 7)) + "/"
                             + Integer.valueOf(bj.getDate().toString().substring(8, 10)) + "/"
                             + Integer.valueOf(bj.getDate().toString().substring(11, 13)) + "/"
