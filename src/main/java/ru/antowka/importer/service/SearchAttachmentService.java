@@ -10,5 +10,5 @@ public interface SearchAttachmentService {
 
     String checkFile(File file) throws IOException;
 
-    Attachments checkDocument (String url, String user, String password, String nodeRef) throws SQLException, IOException;
+    Attachments searchAttachmentsDocument  (String nodeRef) throws IOException;
 }
