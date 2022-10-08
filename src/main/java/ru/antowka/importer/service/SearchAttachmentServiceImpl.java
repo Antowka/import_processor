@@ -44,28 +44,6 @@ public class SearchAttachmentServiceImpl implements SearchAttachmentService {
         InputStream is = new FileInputStream(file);
         if (line.contains("PDF")) {
             return "pdf";
-        } else {
-            try {
-                new HWPFDocument(is);
-                return "doc";
-            } catch (EncryptedDocumentException e) {
-            }
-            try {
-                new HSSFWorkbook(is);
-                return "xls";
-            } catch (EncryptedDocumentException e) {
-            }
-            try {
-                new XWPFDocument(is);
-                return "docx";
-            } catch (EncryptedDocumentException e) {
-            }
-            try {
-                new XSSFWorkbook(is);
-                return "xlsx";
-            } catch (EncryptedDocumentException e) {
-            }
-
         }
         return "-";
     }
@@ -115,7 +93,7 @@ public class SearchAttachmentServiceImpl implements SearchAttachmentService {
                     if (type !="-") {
                         Path path = new Path();
                         path.setPath(file.toPath().toString());
-                        path.setPath(type);
+                        path.setType(type);
                         paths.add(path);
                     }
                 }
