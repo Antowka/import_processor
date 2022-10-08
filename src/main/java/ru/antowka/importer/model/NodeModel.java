@@ -3,6 +3,7 @@ package ru.antowka.importer.model;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @Data
@@ -14,7 +15,7 @@ public class NodeModel {
 
     private Set<PropModel> props;
 
-    private List<ApprovalModel> approvalData;
+    private Map<String, String> approvalData;
 
     private List<Attachment> attachmentsData;
 
@@ -27,14 +28,14 @@ public class NodeModel {
         this.props = props;
     }
 
-    public NodeModel(String nodeRef, String name, Set<PropModel> props, List<ApprovalModel> approvalData) {
+    public NodeModel(String nodeRef, String name, Set<PropModel> props, Map<String, String> approvalData) {
         this.nodeRef = nodeRef;
         this.name = name;
         this.props = props;
         this.approvalData = approvalData;
     }
 
-    public NodeModel(String nodeRef, String name, Set<PropModel> props, List<ApprovalModel> approvalData , List attachmentsData) {
+    public NodeModel(String nodeRef, String name, Set<PropModel> props, Map<String, String> approvalData , List attachmentsData) {
         this.nodeRef = nodeRef;
         this.name = name;
         this.props = props;

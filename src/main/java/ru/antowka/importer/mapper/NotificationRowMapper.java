@@ -13,6 +13,7 @@ public class NotificationRowMapper implements RowMapper<NotificationRecord> {
         NotificationRecord notificationRecord = new NotificationRecord();
         notificationRecord.setDate(rs.getDate("FORMINGDATE"));
         notificationRecord.setRecipient(rs.getString("RECIPIENT"));
+        notificationRecord.setContent(rs.getString("DESCRIPTION"));
         return notificationRecord;
     }
 }
