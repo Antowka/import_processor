@@ -4,6 +4,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 import org.springframework.batch.item.file.LineMapper;
+import ru.antowka.importer.dictionary.DocType;
 import ru.antowka.importer.dictionary.PropsNames;
 import ru.antowka.importer.model.NodeModel;
 import ru.antowka.importer.model.PropModel;
@@ -42,6 +43,9 @@ public class NodeMapper implements LineMapper<NodeModel> {
 
         final NodeModel nodeModel = new NodeModel();
         nodeModel.setNodeRef(nodeRef);
+        nodeModel.setName(linkForDocument.text());
+
+
 
         final Elements liTags = htmlDocument.getElementsByTag("li");
         final Set<String> collect = liTags
@@ -51,6 +55,8 @@ public class NodeMapper implements LineMapper<NodeModel> {
 
         final Set<PropModel> propModels = mapProps(collect);
         nodeModel.setProps(propModels);
+
+        nodeModel.setType(getDocType(propModels).getValue());
 
         return nodeModel;
     }
@@ -91,5 +97,36 @@ public class NodeMapper implements LineMapper<NodeModel> {
                 })
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
+    }
+
+    /**
+     * Определяем тип документа
+     *
+     * @param props
+     * @return
+     */
+    private DocType getDocType(Set<PropModel> props) {
+        final PropModel propModel = props.stream()
+                .filter(prop -> "lecm-document:doc-type".equals(prop.getName()))
+                .findFirst().orElse(null);
+
+        if (Objects.isNull(propModel)) {
+            //Если не удалось определить тип по полю Тип, пробуем по первому слову из cm:name
+            final String propModelName = props.stream()
+                    .filter(prop -> "cm:name".equals(prop.getName()))
+                    .map(propValue -> {
+                        final String[] words = propValue.getValue().split(" ");
+                        if (words.length == 0) {
+                            return "Не определён";
+                        }
+                        return words[0];
+                    })
+                    .findFirst()
+                    .orElse("Не определён");
+
+            return DocType.getTypeByKeyword(propModelName);
+        }
+
+        return DocType.getTypeByKeyword(propModel.getValue());
     }
 }

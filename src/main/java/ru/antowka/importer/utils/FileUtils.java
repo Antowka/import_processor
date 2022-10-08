@@ -19,10 +19,11 @@ public class FileUtils {
      *
      * @param startPath - путь верхней папки
      * @param subString - файл должен содержать подстроку для попадения в выборку
+     * @param fileSizeInKb - размер файла в Кб
      *
      * @return
      */
-    public static List<Path> getAllFilesFromSubFolders(Path startPath, String subString) {
+    public static List<Path> getAllFilesFromSubFolders(Path startPath, String subString, int fileSizeInKb) {
 
         try (Stream<Path> stream = Files.walk(startPath, MAX_DEPTH)) {
 
@@ -35,8 +36,8 @@ public class FileUtils {
                             }
                             try {
 
-                                //Ограничиваем 10кб
-                                if (Files.size(p) > 10*1024) {
+                                //Ограничиваем 20кб
+                                if (Files.size(p) > fileSizeInKb*1024) {
                                     return false;
                                 }
 

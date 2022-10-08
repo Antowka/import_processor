@@ -13,6 +13,8 @@ public class NodeModel {
 
     private String name;
 
+    private String type;
+
     private Set<PropModel> props;
 
     private Map<String, String> approvalData;

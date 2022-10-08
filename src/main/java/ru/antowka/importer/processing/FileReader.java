@@ -61,8 +61,9 @@ public class FileReader<T>  extends FlatFileItemReader<T> {
             if (readFiles.contains(path)) {
                 return null;
             }
-
             readFiles.add(path);
+
+            //Исключаем дубли по версиям
             final String fileString = new String(Files.readAllBytes(Paths.get(path)), StandardCharsets.UTF_8);
             final Pattern compile = Pattern.compile("nodeRef=(.*)?\"");
             final Matcher matcher = compile.matcher(fileString);
@@ -73,6 +74,7 @@ public class FileReader<T>  extends FlatFileItemReader<T> {
                 }
                 readLines.add(nodeRefOfHtml);
             }
+
             return fileString;
         } catch (IOException e) {
             e.printStackTrace();

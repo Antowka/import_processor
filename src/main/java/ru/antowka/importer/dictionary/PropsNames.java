@@ -46,7 +46,6 @@ public class PropsNames {
         put("Утверждено вне системы", new PropModel("lecm-resolutions:approved-outside-system",PropModel.PropType.BOOLEAN));
         put("Требуется решение Завершающего", new PropModel("lecm-resolutions:require-closers-decision",PropModel.PropType.BOOLEAN));
         put("Контроль", new PropModel("lecm-resolutions:control",PropModel.PropType.BOOLEAN));
-
         put("Атрибут индекса резолюции в родительском документе (служебное)", new PropModel("lecm-resolutions:child-index-counter",PropModel.PropType.INT));
         put("Взамен разосланного", new PropModel("lecm-resolutions:instead-of-send",PropModel.PropType.BOOLEAN));
         put("Расширенная строка представления", new PropModel("lecm-document:ext-present-string",PropModel.PropType.STRING));

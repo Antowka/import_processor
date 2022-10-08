@@ -29,8 +29,11 @@ import ru.antowka.importer.processing.FileReader;
 import ru.antowka.importer.processing.NotificationProcessor;
 import ru.antowka.importer.utils.FileUtils;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -70,6 +73,12 @@ public class BatchConfig {
      */
     @Value("${path.to.contentstore}")
     private String pathToContentStore;
+
+    /**
+     * Ограничение размера файла, который читаем при поиске html-файла
+     */
+    @Value("${html.file.read.limit.kb}")
+    private int htmlFileReadLimitKb;
 
     @Bean
     public MultiResourceItemReader<NodeModel> multiResourceItemReader() {
@@ -138,10 +147,29 @@ public class BatchConfig {
 
         while (!startDate.equals(endDate)) {
             final Path path = Paths.get(pathToContentStore, startDate.buildPath());
-            final List<Path> allFilesFromSubFolders = FileUtils.getAllFilesFromSubFolders(path, "<h3><a href");
+            final List<Path> allFoldersAndFilesFromSubFolders = FileUtils.getAllFilesFromSubFolders(path, "<h3><a href", htmlFileReadLimitKb);
 
             //переходим на следующий день для следующий итерации
             startDate.addDay();
+
+            if (CollectionUtils.isEmpty(allFoldersAndFilesFromSubFolders)) {
+                continue;
+            }
+
+            final List<Path> allFilesFromSubFolders = allFoldersAndFilesFromSubFolders
+                    .stream()
+                    .filter(pathFoCheck -> !Files.isDirectory(pathFoCheck)) //Исключаем папки
+                    .sorted((a, b) -> { //Сортировка для того, чтоб сверху оказались наиболее свежие файлы (т.к. версии потом будут удалены как дубли)
+                        try {
+                            final Object lastModifiedTimeA = Files.getAttribute(a, "lastModifiedTime");
+                            final Object lastModifiedTimeB = Files.getAttribute(b, "lastModifiedTime");
+                            return ((FileTime) lastModifiedTimeB).compareTo((FileTime)lastModifiedTimeA);
+                        } catch (IOException e) {
+                            System.out.println("File doesn't have lastModifiedTime attr. Files: \n -" + a + "\n -" + b);
+                        }
+                        return 1;
+                    })
+                    .collect(Collectors.toList());
 
             //Если файлы не нашли
             if (CollectionUtils.isEmpty(allFilesFromSubFolders)) {
