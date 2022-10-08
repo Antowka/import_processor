@@ -11,12 +11,15 @@ import org.springframework.batch.item.file.builder.MultiResourceItemReaderBuilde
 import org.springframework.batch.item.json.JacksonJsonObjectMarshaller;
 import org.springframework.batch.item.json.JsonFileItemWriter;
 import org.springframework.batch.item.json.builder.JsonFileItemWriterBuilder;
+import org.springframework.batch.item.support.CompositeItemProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.util.CollectionUtils;
 import ru.antowka.importer.mapper.NodeMapper;
 import ru.antowka.importer.model.DateFolderModel;
@@ -110,8 +113,8 @@ public class BatchConfig {
         return jobBuilderFactory.get("readHtmlFilesJob")
                 .incrementer(new RunIdIncrementer())
                 //.listener(new JobResultListener())
-                .start(addNotificationsStep())
-                .next(addAttachmentsStep())
+                .flow(mainStep())
+                .end()
                 .build();
     }
 
@@ -158,26 +161,31 @@ public class BatchConfig {
 
     //ШАГИ
     @Bean
-    public Step addAttachmentsStep() {
-        return stepBuilderFactory.get("addAttachmentsStep")
+    public Step mainStep() {
+        return stepBuilderFactory.get("mainStep")
                 //.listener(new StepResultListener())
                 .<NodeModel, NodeModel>chunk(6)
                 .reader(multiResourceItemReader())
                 .faultTolerant()
-                .processor(attachmentProcessor())
+                .processor(compositeItemProcessor())
                 .writer(writer())
+                .taskExecutor(taskExecutor())
                 .build();
     }
 
     @Bean
-    public Step addNotificationsStep() {
-        return stepBuilderFactory.get("addNotificationsStep")
-                //.listener(new StepResultListener())
-                .<NodeModel, NodeModel>chunk(6)
-                .reader(multiResourceItemReader())
-                .faultTolerant()
-                .processor(notificationProcessor())
-                .writer(writer())
-                .build();
+    public TaskExecutor taskExecutor() {
+        return new SimpleAsyncTaskExecutor("spring_batch");
+    }
+
+    @Bean
+    public CompositeItemProcessor<NodeModel, NodeModel> compositeItemProcessor() {
+        CompositeItemProcessor<NodeModel, NodeModel> compositeProcessor = new CompositeItemProcessor<>();
+        List itemProcessors = new ArrayList();
+        itemProcessors.add(attachmentProcessor());
+        itemProcessors.add(notificationProcessor());
+        compositeProcessor.setDelegates(itemProcessors);
+
+        return compositeProcessor;
     }
 }
