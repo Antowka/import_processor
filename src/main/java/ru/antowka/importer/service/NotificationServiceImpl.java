@@ -1,6 +1,7 @@
 package ru.antowka.importer.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import ru.antowka.importer.entitiy.NotificationRecord;
@@ -17,6 +18,7 @@ public class NotificationServiceImpl implements NotificationService {
     private static final String TEMPLATE_APPROVAL_DIRECT = "APPROVAL_DIRECT";
 
     @Autowired
+    @Qualifier("notificationJdbcTemplate")
     private JdbcTemplate jdbcTemplate;
 
     @Override
