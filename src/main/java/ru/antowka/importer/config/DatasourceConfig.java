@@ -48,6 +48,10 @@ public class DatasourceConfig {
                 .build();
     }
 
+    /**
+     * H2DB для хранения meta-данных для Spring-Batch (чтоб не лазил в Postgres)
+     * @return
+     */
     @Bean
     @Primary
     public DataSource dataSource() {
