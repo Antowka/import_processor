@@ -11,6 +11,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class FileReader<T>  extends FlatFileItemReader<T> {
 
@@ -19,6 +21,8 @@ public class FileReader<T>  extends FlatFileItemReader<T> {
     private Resource resource;
 
     private Set<String> readFiles = new HashSet<>();
+    private Set<String> readLines = new HashSet<>();
+
 
     @Override
     public void setResource(Resource resource) {
@@ -37,14 +41,15 @@ public class FileReader<T>  extends FlatFileItemReader<T> {
          String line = this.readLine();
 
          if (line == null) {
-                return null;
+             return null;
          } else {
             try {
                 return this.lineMapper.mapLine(line, 0); //0 - т.к читаем файл целиком в одну линию
             } catch (Exception var3) {
-                throw new RuntimeException("Can't map file");
+                System.out.println("Can't map file/line: " + line);
             }
          }
+         return null;
     }
 
     @Nullable
@@ -58,7 +63,17 @@ public class FileReader<T>  extends FlatFileItemReader<T> {
             }
 
             readFiles.add(path);
-            return new String(Files.readAllBytes(Paths.get(path)), StandardCharsets.UTF_8);
+            final String fileString = new String(Files.readAllBytes(Paths.get(path)), StandardCharsets.UTF_8);
+            final Pattern compile = Pattern.compile("nodeRef=(.*)?\"");
+            final Matcher matcher = compile.matcher(fileString);
+            if(matcher.find()) {
+                final String nodeRefOfHtml = matcher.group(1);
+                if (readLines.contains(nodeRefOfHtml)) {
+                    return null;
+                }
+                readLines.add(nodeRefOfHtml);
+            }
+            return fileString;
         } catch (IOException e) {
             e.printStackTrace();
             System.out.println("Couldn't read file with path: " + resource.toString());

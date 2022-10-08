@@ -8,8 +8,11 @@ import ru.antowka.importer.dictionary.PropsNames;
 import ru.antowka.importer.model.NodeModel;
 import ru.antowka.importer.model.PropModel;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class NodeMapper implements LineMapper<NodeModel> {
@@ -40,6 +43,15 @@ public class NodeMapper implements LineMapper<NodeModel> {
         final NodeModel nodeModel = new NodeModel();
         nodeModel.setNodeRef(nodeRef);
 
+        final Elements liTags = htmlDocument.getElementsByTag("li");
+        final Set<String> collect = liTags
+                .parallelStream()
+                .map(e -> e.text().trim())
+                .collect(Collectors.toSet());
+
+        final Set<PropModel> propModels = mapProps(collect);
+        nodeModel.setProps(propModels);
+
         return nodeModel;
     }
 
@@ -54,17 +66,30 @@ public class NodeMapper implements LineMapper<NodeModel> {
         return lineWithDataWithDelimiter
                 .stream()
                 .map(line -> {
-                    System.out.println("Map line: " + line);
-                    final String[] arrLine = line.split(":");
-                    if (arrLine.length != 2) {
-                        System.out.println("Line is broken: " + line);
+                    //System.out.println("Map line: " + line);
+                    Pattern pattern = Pattern.compile("(:\\s)");
+                    final List<String> arrLine = Arrays.asList(pattern.split(line));
+
+                    if (arrLine.isEmpty()) {
+                        return null;
                     }
-                    String key = arrLine[0];
-                    String value = arrLine[1];
+
+                    String key = arrLine.get(0).trim();
+                    String value;
+                    if (arrLine.size() == 2) {
+                        value = arrLine.get(1);
+                    } else {
+                        value = arrLine
+                                .stream()
+                                .filter(it -> !it.equals(key))
+                                .collect(Collectors.joining(": "));
+                    }
+
                     final PropModel propNameByPresentString = PropsNames.getPropNameByPresentString(key);
                     propNameByPresentString.setValue(value);
                     return propNameByPresentString;
                 })
+                .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
     }
 }
