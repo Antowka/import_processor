@@ -197,7 +197,7 @@ public class BatchConfig {
                 .faultTolerant()
                 .processor(compositeItemProcessor())
                 .writer(writer())
-                .taskExecutor(taskExecutor())
+                //.taskExecutor(taskExecutor())
                 .build();
     }
 
