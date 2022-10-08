@@ -30,7 +30,16 @@ public class NodeMapper implements LineMapper<NodeModel> {
         if (Objects.isNull(linkForDocument) || linkForDocument.isEmpty()) {
             System.out.println("Not found element for Link");
         }
+
+        String nodeRef = linkForDocument
+                .get(0)
+                .attributes()
+                .get("href")
+                .replaceAll("(htt.*=)", "");
+
         final NodeModel nodeModel = new NodeModel();
+        nodeModel.setNodeRef(nodeRef);
+
         return nodeModel;
     }
 

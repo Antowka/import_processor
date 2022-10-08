@@ -23,6 +23,7 @@ import ru.antowka.importer.model.DateFolderModel;
 import ru.antowka.importer.model.NodeModel;
 import ru.antowka.importer.processing.AttachmentsProcessor;
 import ru.antowka.importer.processing.FileReader;
+import ru.antowka.importer.processing.NotificationProcessor;
 import ru.antowka.importer.utils.FileUtils;
 
 import java.nio.file.Path;
@@ -77,8 +78,13 @@ public class BatchConfig {
     }
 
     @Bean
-    public AttachmentsProcessor processor() {
+    public AttachmentsProcessor attachmentProcessor() {
         return new AttachmentsProcessor();
+    }
+
+    @Bean
+    public NotificationProcessor notificationProcessor() {
+        return new NotificationProcessor();
     }
 
     @Bean
@@ -104,8 +110,8 @@ public class BatchConfig {
         return jobBuilderFactory.get("readHtmlFilesJob")
                 .incrementer(new RunIdIncrementer())
                 //.listener(new JobResultListener())
-                .flow(addAttachmentsStep())
-                .end()
+                .start(addNotificationsStep())
+                .next(addAttachmentsStep())
                 .build();
     }
 
@@ -158,7 +164,19 @@ public class BatchConfig {
                 .<NodeModel, NodeModel>chunk(6)
                 .reader(multiResourceItemReader())
                 .faultTolerant()
-                .processor(processor())
+                .processor(attachmentProcessor())
+                .writer(writer())
+                .build();
+    }
+
+    @Bean
+    public Step addNotificationsStep() {
+        return stepBuilderFactory.get("addNotificationsStep")
+                //.listener(new StepResultListener())
+                .<NodeModel, NodeModel>chunk(6)
+                .reader(multiResourceItemReader())
+                .faultTolerant()
+                .processor(notificationProcessor())
                 .writer(writer())
                 .build();
     }

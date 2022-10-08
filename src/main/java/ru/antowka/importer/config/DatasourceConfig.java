@@ -33,7 +33,6 @@ public class DatasourceConfig {
         return new DataSourceProperties();
     }
 
-
     @Bean
     public DataSource notificationDataSource() {
         return notificationDataSourceProperties()
