@@ -28,6 +28,13 @@ public class DatasourceConfig {
 
     @Primary
     @Bean
+    @ConfigurationProperties("spring.datasource")
+    public DataSourceProperties dataSourceProperties() {
+        return new DataSourceProperties();
+    }
+
+
+    @Bean
     public DataSource notificationDataSource() {
         return notificationDataSourceProperties()
                 .initializeDataSourceBuilder()
@@ -37,6 +44,18 @@ public class DatasourceConfig {
     @Bean
     public DataSource bjDataSource() {
         return bjDataSourceProperties()
+                .initializeDataSourceBuilder()
+                .build();
+    }
+
+    /**
+     * H2DB для хранения meta-данных для Spring-Batch (чтоб не лазил в Postgres)
+     * @return
+     */
+    @Bean
+    @Primary
+    public DataSource dataSource() {
+        return dataSourceProperties()
                 .initializeDataSourceBuilder()
                 .build();
     }
