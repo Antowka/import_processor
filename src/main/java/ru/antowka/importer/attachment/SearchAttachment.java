@@ -45,7 +45,9 @@ public class SearchAttachment {
         }
         return "-";
     }
-    public static Attachments checkDocument (String url, String user, String password, String nodeRef, Connection con, String base_path) throws SQLException, IOException {
+    public static Attachments checkDocument (String url, String user, String password, String nodeRef) throws SQLException, IOException {
+        Connection con = DriverManager.getConnection(url, user, password);
+        String base_path = "C:/alfresco-rn/alf_data/contentstore/";
         List<Timestamp> dates = new ArrayList<Timestamp>();
         List<BjInfo> bjList = new ArrayList<>();
         Attachments attachments = new Attachments();
