@@ -12,12 +12,10 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import ru.antowka.importer.mapper.AttachmentRowMapper;
 import ru.antowka.importer.model.Attachment;
-import ru.antowka.importer.model.Attachments;
 import ru.antowka.importer.entitiy.BjRecord;
 import ru.antowka.importer.model.Path;
 
 import java.io.*;
-import java.sql.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -41,10 +39,10 @@ public class SearchAttachmentServiceImpl implements SearchAttachmentService {
         FileReader fr = new FileReader(file);
         BufferedReader reader = new BufferedReader(fr);
         String line = reader.readLine();
-        InputStream is = new FileInputStream(file);
         if (line.contains("PDF")) {
             return "pdf";
         }
+        fr.close();
         return "-";
     }
 
@@ -59,7 +57,9 @@ public class SearchAttachmentServiceImpl implements SearchAttachmentService {
                 String record = bj.getRecord();
                 String name = record.substring(record.indexOf(bj.getRefAttachment(), 1), record.indexOf("к документу"));
                 attachment.setNameAttachment(name.substring(name.indexOf(">") + 1, name.length() - 5));
-                attachment.setCategory(record.substring(record.indexOf("в категорию") + 13, record.length() - 1));
+                if(record.indexOf("в категорию") >0){
+                    attachment.setCategory(record.substring(record.indexOf("в категорию") + 13, record.length() - 1));
+                }
                 attachment.setInitiator(bj.getInitiator());
                 String path1 = pathToContentStore + (bj.getDate().toString().substring(0, 4)) + "/" +
                         Integer.valueOf(bj.getDate().toString().substring(5, 7)) + "/"
