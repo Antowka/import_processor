@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import ru.antowka.importer.entitiy.NotificationRecord;
 import ru.antowka.importer.mapper.NotificationRowMapper;
 
@@ -29,6 +30,12 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public Map<String, String> getApproversForDocument(String docRef) {
+
+        //Если не передан тип уведомление "Согласование"
+        if (StringUtils.isEmpty(notificationType)) {
+            return null;
+        }
+
         //ищем записи с отправкой на согласование
         List<NotificationRecord> directRecords = jdbcTemplate.query(String.format(QUERY_APPROVAL_DIRECT, docRef, notificationType, TEMPLATE_APPROVAL_DIRECT),
                 new NotificationRowMapper());

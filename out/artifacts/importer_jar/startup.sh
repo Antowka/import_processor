@@ -10,4 +10,4 @@ java -jar importer.jar --date.processing.start=30.09.2021 \
                                       --spring.datasource.bj.username=alfresco \
                                       --spring.datasource.bj.password=admin \
                                       --html.file.read.limit.kb=20 \
-                                      --dictionary.notificationtype.noderef=workspace://SpacesStore/00527524-7653-43c1-b04f-4cb0b1e8dd95
+                                      --dictionary.notificationtype.noderef=
