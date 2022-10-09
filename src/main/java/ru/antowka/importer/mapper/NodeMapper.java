@@ -2,13 +2,17 @@ package ru.antowka.importer.mapper;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.batch.item.file.LineMapper;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import ru.antowka.importer.dictionary.DocType;
 import ru.antowka.importer.dictionary.PropsNames;
 import ru.antowka.importer.model.NodeModel;
 import ru.antowka.importer.model.PropModel;
 
+import javax.print.Doc;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -45,7 +49,8 @@ public class NodeMapper implements LineMapper<NodeModel> {
         nodeModel.setNodeRef(nodeRef);
         nodeModel.setName(linkForDocument.text());
 
-
+        DocType docType = getDocType(htmlDocument);
+        nodeModel.setType(docType.getValue());
 
         final Elements liTags = htmlDocument.getElementsByTag("li");
         final Set<String> collect = liTags
@@ -53,10 +58,8 @@ public class NodeMapper implements LineMapper<NodeModel> {
                 .map(e -> e.text().trim())
                 .collect(Collectors.toSet());
 
-        final Set<PropModel> propModels = mapProps(collect);
+        final Set<PropModel> propModels = mapProps(docType, collect);
         nodeModel.setProps(propModels);
-
-        nodeModel.setType(getDocType(propModels).getValue());
 
         return nodeModel;
     }
@@ -67,7 +70,7 @@ public class NodeMapper implements LineMapper<NodeModel> {
      * @param lineWithDataWithDelimiter
      * @return
      */
-    private Set<PropModel> mapProps(Set<String> lineWithDataWithDelimiter) {
+    private Set<PropModel> mapProps(DocType docType, Set<String> lineWithDataWithDelimiter) {
 
         return lineWithDataWithDelimiter
                 .stream()
@@ -91,7 +94,7 @@ public class NodeMapper implements LineMapper<NodeModel> {
                                 .collect(Collectors.joining(": "));
                     }
 
-                    final PropModel propNameByPresentString = PropsNames.getPropNameByPresentString(key);
+                    final PropModel propNameByPresentString = PropsNames.getPropNameByPresentString(docType, key);
                     propNameByPresentString.setValue(value);
                     return propNameByPresentString;
                 })
@@ -102,31 +105,32 @@ public class NodeMapper implements LineMapper<NodeModel> {
     /**
      * Определяем тип документа
      *
-     * @param props
+     * @param htmlDocument
      * @return
      */
-    private DocType getDocType(Set<PropModel> props) {
-        final PropModel propModel = props.stream()
-                .filter(prop -> "lecm-document:doc-type".equals(prop.getName()))
-                .findFirst().orElse(null);
+    private DocType getDocType(Document htmlDocument) {
 
-        if (Objects.isNull(propModel)) {
-            //Если не удалось определить тип по полю Тип, пробуем по первому слову из cm:name
-            final String propModelName = props.stream()
-                    .filter(prop -> "cm:name".equals(prop.getName()))
-                    .map(propValue -> {
-                        final String[] words = propValue.getValue().split(" ");
-                        if (words.length == 0) {
-                            return "Не определён";
-                        }
-                        return words[0];
-                    })
-                    .findFirst()
-                    .orElse("Не определён");
+        String name = htmlDocument
+                .getElementsByTag("li")
+                .stream()
+                .map(Element::text)
+                .filter(text -> text.contains("Тип:"))
+                .map(text -> text.replace("Тип:", "").trim())
+                .findFirst()
+                .orElse(null);
 
-            return DocType.getTypeByKeyword(propModelName);
+        if (Objects.isNull(name)) {
+            //Определение по первому слову в заголовке
+            final String[] split = htmlDocument
+                    .getElementsByTag("a")
+                    .text()
+                    .split(" ");
+
+            if (split.length > 0) {
+                name = split[0];
+            }
         }
 
-        return DocType.getTypeByKeyword(propModel.getValue());
+        return DocType.getTypeByKeyword(name);
     }
 }
