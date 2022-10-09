@@ -12,11 +12,12 @@ public enum DocType {
     ERRANDS("Поручение", "lecm-errands:document"),
     INCOMING("Входящий", "lecm-incoming:document"),
     OUTGOING("Исходящий", "lecm-outgoing:document"),
+    APPROVAL_CARD("Карточка согласования", "rn-document-approval:document"),
     FAIL("Не определён", "fail");
 
-    private String keyword;
+    private final String keyword;
 
-    private String value;
+    private final String value;
 
     DocType(String keyword, String value) {
         this.keyword = keyword;

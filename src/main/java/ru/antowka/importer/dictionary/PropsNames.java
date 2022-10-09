@@ -123,6 +123,18 @@ public class PropsNames {
                 put("Срок исполнения", new PropModel("lecm-errands:limitation-date", PropModel.PropType.STRING));
             }
         });
+
+        //Карточка согласования
+        put(DocType.APPROVAL_CARD, new HashMap<String, PropModel>() {
+            {
+                put("Код вида документа (служебное)", new PropModel("rn-document-approval:document-kind-code",PropModel.PropType.STRING));
+                put("Вид документа", new PropModel("rn-document-approval:document-kind-assoc",PropModel.PropType.STRING));
+                put("Комментарий", new PropModel("rn-document-approval:comment",PropModel.PropType.STRING));
+                put("Приложен протокол разногласий", new PropModel("lecm-approval-rn-aspects:document-disagreement-protocol-added",PropModel.PropType.BOOLEAN));
+                put("Разрешить редактирование владельца документа вручную", new PropModel("lecm-eds-aspect:change-eds-document-owner-manually",PropModel.PropType.BOOLEAN));
+                put("Антикоррупционная экспертиза", new PropModel("rn-document-approval:anti-corruption-expertise",PropModel.PropType.BOOLEAN));
+            }
+        });
     }};
 
     public static PropModel getPropNameByPresentString(DocType docType, String presentString) {
