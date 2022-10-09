@@ -10,9 +10,10 @@ import java.util.Arrays;
 public enum DocType {
     RESOLUTION("Резолюция", "lecm-resolutions:document"),
     ERRANDS("Поручение", "lecm-errands:document"),
-    INCOMING("Входящий", "lecm-incoming:document"),
-    OUTGOING("Исходящий", "lecm-outgoing:document"),
+    INCOMING("Входящий документ", "lecm-incoming:document"),
+    OUTGOING("Исходящий документ", "lecm-outgoing:document"),
     APPROVAL_CARD("Карточка согласования", "rn-document-approval:document"),
+    INTERNAL("Служебная записка","lecm-internal:document"),
     FAIL("Не определён", "fail");
 
     private final String keyword;
