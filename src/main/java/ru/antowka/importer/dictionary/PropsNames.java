@@ -57,6 +57,8 @@ public class PropsNames {
             put("Причины возврата", new PropModel("lecm-eds-ts:reasons-for-return-assoc", PropModel.PropType.STRING));
             put("Состояние ознакомления", new PropModel("lecm-review-ts:doc-review-state", PropModel.PropType.STRING));
             put("Разрешить редактирование владельца документа вручную", new PropModel("lecm-eds-aspect:change-eds-document-owner-manually", PropModel.PropType.BOOLEAN));
+            put("Закрыть неисполненные подчиненные поручения", new PropModel("lecm-eds-aspect:completion-signal-close-child",PropModel.PropType.BOOLEAN));
+            put("Инсайдерская информация", new PropModel("lecm-eds-aspect:inside-information",PropModel.PropType.BOOLEAN));
         }
     };
 
@@ -119,7 +121,7 @@ public class PropsNames {
         //Поручение
         put(DocType.ERRANDS, new HashMap<String, PropModel>() {
             {
-                put("Ответственный исполнитель", new PropModel("lecm-errands:complex-executor-assoc-text-content", PropModel.PropType.STRING));
+                put("Ответственный исполнитель", new PropModel("lecm-errands:complex-executor-assoc", PropModel.PropType.STRING));
                 put("Срок исполнения", new PropModel("lecm-errands:limitation-date", PropModel.PropType.DATE));
                 put("Отменить подчиненные поручения", new PropModel("lecm-errands:cancel-children", PropModel.PropType.BOOLEAN));
                 put("Требуется отчет", new PropModel("lecm-errands-dic:errand-type-report-required", PropModel.PropType.BOOLEAN));
@@ -128,13 +130,42 @@ public class PropsNames {
                 put("Документ-основание", new PropModel("lecm-errands:base-document-assoc", PropModel.PropType.STRING));
                 put("Заголовок документа-основания", new PropModel("lecm-errands:base-document-content", PropModel.PropType.STRING));
                 put("Групповое поручение", new PropModel("lecm-errands:is-group", PropModel.PropType.BOOLEAN));
-                put("Тип поручения", new PropModel("lecm-errands:category-assoc", PropModel.PropType.STRING));
+                put("Тип поручения", new PropModel("lecm-errands:type-assoc", PropModel.PropType.STRING));
                 put("Сигнал об отмене", new PropModel("lecm-errands:cancellation-signal", PropModel.PropType.BOOLEAN));
                 put("На внешнем контроле", new PropModel("lecm-errands-aspect:on-external-control", PropModel.PropType.BOOLEAN));
                 put("Тип срока исполнения", new PropModel("lecm-errands:limitation-date-type", PropModel.PropType.STRING));
                 put("На докладе", new PropModel("lecm-errands:on-report", PropModel.PropType.BOOLEAN));
                 put("Текст поручения", new PropModel("lecm-errands:content", PropModel.PropType.STRING));
                 put("Флаг для перехода в статус \"Закрыто\"", new PropModel("lecm-errands:transit-to-closed", PropModel.PropType.BOOLEAN));
+                put("Середина срока исполнения", new PropModel("lecm-errands:half-limit-date",PropModel.PropType.DATE));
+                put("Срок исполнения в днях", new PropModel("lecm-errands:limitation-date-days",PropModel.PropType.INT));
+                put("Атрибут индекса периодического поручения", new PropModel("lecm-errands:periodical-index-counter",PropModel.PropType.STRING));
+                put("О принятии отчёта получателем", new PropModel("lecm-errands:report-is-accepted",PropModel.PropType.BOOLEAN));
+                put("Исполнитель", new PropModel("lecm-errands:execution-report-employee-fake",PropModel.PropType.STRING));
+                put("Тип документа-основания", new PropModel("lecm-eds-aspect:base-document-type",PropModel.PropType.STRING));
+                put("Учитывать в КПЭ", new PropModel("lecm-errands:is-consider-KPI",PropModel.PropType.BOOLEAN));
+                put("Число повторений", new PropModel("lecm-errands:reiteration-count",PropModel.PropType.INT));
+                put("Периодичность доклада", new PropModel("lecm-errands:periodic-report-order-radio",PropModel.PropType.STRING));
+                put("Номер поручения", new PropModel("lecm-errands:number",PropModel.PropType.STRING));
+                put("Отменить подчиненные поручения", new PropModel("lecm-errands:cancel-children",PropModel.PropType.BOOLEAN));
+                put("Требуется отчет", new PropModel("lecm-errands:report-required",PropModel.PropType.BOOLEAN));
+                put("Флаг для отключения действий на статусе", new PropModel("lecm-errands:hold-on-project",PropModel.PropType.BOOLEAN));
+                put("Уведомлять Автора", new PropModel("lecm-errands:author-notification",PropModel.PropType.BOOLEAN));
+                put("Бессрочное действие грифа", new PropModel("lecm-eds-aspect:non-expiring-privacy-stamp",PropModel.PropType.STRING));
+                put("Категория поручения", new PropModel("lecm-errands:category-assoc",PropModel.PropType.STRING));
+                put("Контролеры", new PropModel("lecm-errands:controller-assoc",PropModel.PropType.STRING));
+                put("Переход после исполнения (служебное)", new PropModel("lecm-errands:execute-result",PropModel.PropType.STRING));
+                put("Периодический отчет", new PropModel("lecm-errands:is-periodic-report",PropModel.PropType.BOOLEAN));
+                put("Контроль СВА", new PropModel("lecm-errands:is-control-SVA",PropModel.PropType.BOOLEAN));
+                put("часы", new PropModel("lecm-errands:child-index-counter",PropModel.PropType.INT));
+                put("Запросы", new PropModel("lecm-errands-ts:request-assoc",PropModel.PropType.STRING));
+                put("Статус отчета", new PropModel("lecm-errands:execution-report-status",PropModel.PropType.STRING));
+                put("Флаг для перехода на статус \"Исполнено\"", new PropModel("lecm-errands:transit-to-executed",PropModel.PropType.BOOLEAN));
+                put("Без утверждения Инициатором", new PropModel("lecm-errands:without-initiator-approval",PropModel.PropType.BOOLEAN));
+                put("Группа контроля", new PropModel("lecm-errands:control-group-assoc",PropModel.PropType.STRING));
+                put("Необходима служебная записка", new PropModel("lecm-errands:is-internal-doc-required-for-intermediate-report",PropModel.PropType.BOOLEAN));
+                put("В течение", new PropModel("lecm-errands:period-during",PropModel.PropType.INT));
+                put("Краткосрочное", new PropModel("lecm-errands:is-limit-short",PropModel.PropType.BOOLEAN));
             }
         });
 
