@@ -66,6 +66,9 @@ public class PropsNames {
             put("Исполнитель", new PropModel("lecm-eds-document:executor-assoc", PropModel.PropType.STRING));
             put("Статистика исполнения (JSON)", new PropModel("lecm-eds-aspect:execution-statistics", PropModel.PropType.STRING));
             put("Стаститика", new PropModel("lecm-review-ts:doc-review-statistics", PropModel.PropType.STRING));
+            put("Флаг необходимости перевода на регистрацию", new PropModel("lecm-eds-aspect:move-to-registration", PropModel.PropType.STRING));
+            put("Исполнители поручений", new PropModel("lecm-errands-aspect:errands-executors-assoc", PropModel.PropType.STRING));
+            put("Состояние исполнения", new PropModel("prop_lecm-eds-aspect:execution-state", PropModel.PropType.STRING));
         }
     };
 
@@ -275,6 +278,20 @@ public class PropsNames {
                 put("Дата совещания (заседания)", new PropModel("lecm-protocol:meeting-date", PropModel.PropType.DATE));
                 put("Состояние исполнения", new PropModel("lecm-review-aspects:related-review-state", PropModel.PropType.STRING));
                 put("Пункты", new PropModel("lecm-protocol-ts:points-assoc-text-content", PropModel.PropType.STRING));
+            }
+        });
+        // РД
+        put(DocType.ORD, new HashMap<String, PropModel>() {
+            {
+                put("Перечень внутренних документов (из Lotus)", new PropModel("lecm-ord:internal-documents-list",PropModel.PropType.STRING));
+                put("Описание проблем и предмета регулирования", new PropModel("lecm-ord:description-of-problems", PropModel.PropType.STRING));
+                put("Основание для подготовки", new PropModel("lecm-ord:basis-for-preparation-radio", PropModel.PropType.STRING));
+                put("Содержит план мероприятий", new PropModel("lecm-ord:contains-events-plan", PropModel.PropType.BOOLEAN));
+                put("Состояние", new PropModel("lecm-ord:state", PropModel.PropType.STRING));
+                put("Краткий перечень конкретных мер/ключевые моменты документа", new PropModel("lecm-ord:short-list-of-specific-measures", PropModel.PropType.STRING));
+                put("Ожидаемые результаты/положительные эффекты от утверждения", new PropModel("lecm-ord:expected-results", PropModel.PropType.STRING));
+                put("Флаг для перехода на статус \"На исполнении\"", new PropModel("lecm-ord:transit-to-on-execution", PropModel.PropType.BOOLEAN));
+                put("Флаг для перехода на статус \"Работа завершена\"", new PropModel("lecm-ord:transit-to-work-completed", PropModel.PropType.BOOLEAN));
             }
         });
     }};
