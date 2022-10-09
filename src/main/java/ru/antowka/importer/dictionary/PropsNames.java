@@ -150,6 +150,7 @@ public class PropsNames {
         put("Комментарий", new PropModel("rn-document-approval:comment",PropModel.PropType.STRING));
         put("Приложен протокол разногласий", new PropModel("lecm-approval-rn-aspects:document-disagreement-protocol-added",PropModel.PropType.BOOLEAN));
         put("Разрешить редактирование владельца документа вручную", new PropModel("lecm-eds-aspect:change-eds-document-owner-manually",PropModel.PropType.BOOLEAN));
+        put("Антикоррупционная экспертиза", new PropModel("rn-document-approval:anti-corruption-expertise",PropModel.PropType.BOOLEAN));
 
     }};
 
