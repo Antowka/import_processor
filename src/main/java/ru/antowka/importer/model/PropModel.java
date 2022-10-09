@@ -17,6 +17,6 @@ public class PropModel {
     }
 
     public enum PropType {
-        BOOLEAN, INT, LONG, STRING, DATE, FAIL
+        BOOLEAN, INT, LONG, STRING, DATE, FAIL, ASSOC
     }
 }

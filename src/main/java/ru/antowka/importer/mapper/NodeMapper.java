@@ -7,12 +7,12 @@ import org.jsoup.select.Elements;
 import org.springframework.batch.item.file.LineMapper;
 import ru.antowka.importer.dictionary.DocType;
 import ru.antowka.importer.dictionary.PropsNames;
+import ru.antowka.importer.dto.NodeDto;
 import ru.antowka.importer.model.NodeModel;
 import ru.antowka.importer.model.PropModel;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -59,7 +59,15 @@ public class NodeMapper implements LineMapper<NodeModel> {
                 .collect(Collectors.toSet());
 
         final Set<PropModel> propModels = mapProps(docType, collect);
+        final Set<PropModel> assocModels = new HashSet<>();
+        propModels
+                .stream()
+                .filter(prop -> PropModel.PropType.ASSOC.equals(prop.getType()))
+                .forEach(assocModels::add);
+        propModels.removeAll(assocModels);
+
         nodeModel.setProps(propModels);
+        nodeModel.setAssocs(assocModels);
 
         return nodeModel;
     }
@@ -95,13 +103,13 @@ public class NodeMapper implements LineMapper<NodeModel> {
                     }
 
                     final PropModel propNameByPresentString = PropsNames.getPropNameByPresentString(docType, key);
+
                     if (PropModel.PropType.DATE.equals(propNameByPresentString.getType())) {
                         value = dateFormatter(value);
                         propNameByPresentString.setValue(value);
                     } else {
                         propNameByPresentString.setValue(value);
                     }
-
                     return propNameByPresentString;
                 })
                 .filter(Objects::nonNull)

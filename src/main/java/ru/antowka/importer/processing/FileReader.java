@@ -46,7 +46,8 @@ public class FileReader<T>  extends FlatFileItemReader<T> {
             try {
                 return this.lineMapper.mapLine(line, 0); //0 - т.к читаем файл целиком в одну линию
             } catch (Exception var3) {
-                System.out.println("Can't map file/line: " + line);
+                System.out.println("Can't map file/line: " + line.substring(0, 300));
+                var3.printStackTrace();
             }
          }
          return null;

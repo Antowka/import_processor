@@ -16,6 +16,7 @@ public class NodeModel {
     private String type;
 
     private Set<PropModel> props;
+    private Set<PropModel> assocs;
 
     private Map<String, String> approvalData;
 

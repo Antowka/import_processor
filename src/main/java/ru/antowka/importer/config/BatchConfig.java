@@ -1,5 +1,6 @@
 package ru.antowka.importer.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
@@ -25,6 +26,7 @@ import ru.antowka.importer.mapper.NodeMapper;
 import ru.antowka.importer.model.DateFolderModel;
 import ru.antowka.importer.model.NodeModel;
 import ru.antowka.importer.processing.AttachmentsProcessor;
+import ru.antowka.importer.processing.DtoProcessor;
 import ru.antowka.importer.processing.FileReader;
 import ru.antowka.importer.processing.NotificationProcessor;
 import ru.antowka.importer.utils.FileUtils;
@@ -100,9 +102,15 @@ public class BatchConfig {
     }
 
     @Bean
+    public DtoProcessor dtoProcessor() {
+        return new DtoProcessor();
+    }
+
+    @Bean
     public JsonFileItemWriter<NodeModel> writer() {
         JsonFileItemWriterBuilder<NodeModel> builder = new JsonFileItemWriterBuilder<>();
         JacksonJsonObjectMarshaller<NodeModel> marshaller = new JacksonJsonObjectMarshaller<>();
+
         return builder
                 .name("jsonNodeModelWriter")
                 .jsonObjectMarshaller(marshaller)
@@ -147,7 +155,7 @@ public class BatchConfig {
 
         while (!startDate.equals(endDate)) {
             final Path path = Paths.get(pathToContentStore, startDate.buildPath());
-            final List<Path> allFoldersAndFilesFromSubFolders = FileUtils.getAllFilesFromSubFolders(path, "<h3><a href", htmlFileReadLimitKb);
+            final List<Path> allFoldersAndFilesFromSubFolders = FileUtils.getAllFilesFromSubFolders(path, "<h3><a href=\"http://", htmlFileReadLimitKb);
 
             //переходим на следующий день для следующий итерации
             startDate.addDay();
@@ -212,6 +220,7 @@ public class BatchConfig {
         List itemProcessors = new ArrayList();
         itemProcessors.add(attachmentProcessor());
         itemProcessors.add(notificationProcessor());
+        itemProcessors.add(dtoProcessor());
         compositeProcessor.setDelegates(itemProcessors);
 
         return compositeProcessor;
