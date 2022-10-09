@@ -19,6 +19,7 @@ public class PropsNames {
             put("Заголовок", new PropModel("cm:title", PropModel.PropType.STRING));
 
             //Проверить, что тут все только общие
+            put("На контроле", new PropModel("lecm-document-aspects:is-on-control", PropModel.PropType.BOOLEAN));
             put("Статус", new PropModel("lecm-statemachine:status", PropModel.PropType.STRING));
             put("Гриф конфиденциальности", new PropModel("lecm-eds-aspect:security-classification-assoc", PropModel.PropType.STRING));
             put("Комментарии ДДОиА", new PropModel("lecm-eds-ts:ddoia-comments-assoc", PropModel.PropType.STRING));
@@ -52,6 +53,10 @@ public class PropsNames {
             put("Номер", new PropModel("lecm-document-aspects:reg-data-number", PropModel.PropType.STRING));
             put("Регистратор", new PropModel("rn-document-aspects:potential-registrars-assoc", PropModel.PropType.STRING));
             put("Срочно", new PropModel("lecm-eds-aspect:is-urgent", PropModel.PropType.BOOLEAN));
+            put("Вид документа", new PropModel("lecm-eds-document:document-type-assoc", PropModel.PropType.STRING));
+            put("Причины возврата", new PropModel("lecm-eds-ts:reasons-for-return-assoc", PropModel.PropType.STRING));
+            put("Состояние ознакомления", new PropModel("lecm-review-ts:doc-review-state", PropModel.PropType.STRING));
+            put("Разрешить редактирование владельца документа вручную", new PropModel("lecm-eds-aspect:change-eds-document-owner-manually", PropModel.PropType.BOOLEAN));
         }
     };
 
@@ -60,20 +65,15 @@ public class PropsNames {
         //Исходящий
         put(DocType.OUTGOING, new HashMap<String, PropModel>() {
             {
-                put("Причины возврата", new PropModel("lecm-eds-ts:reasons-for-return-assoc", PropModel.PropType.STRING));
                 put("Строка представления для списка", new PropModel("lecm-document:list-present-string", PropModel.PropType.STRING));
-                put("Вид документа", new PropModel("lecm-eds-document:document-type-assoc", PropModel.PropType.STRING));
-                put("На контроле", new PropModel("lecm-document-aspects:is-on-control", PropModel.PropType.BOOLEAN));
                 put("Способ доставк (служебное)", new PropModel("external-mailing-list:items-assoc-delivery-method-assoc", PropModel.PropType.STRING));
                 put("Флаг для отправки на подписание", new PropModel("lecm-outgoing:transit-to-signing", PropModel.PropType.BOOLEAN));
-                put("Состояние ознакомления", new PropModel("lecm-review-ts:doc-review-state", PropModel.PropType.STRING));
                 put("Корреспондент", new PropModel("lecm-outgoing:contractor-assoc", PropModel.PropType.STRING));
                 put("Подтверждать доставку", new PropModel("lecm-outgoing:confirm-delivery", PropModel.PropType.STRING));
                 put("Подписан вне СЭД", new PropModel("lecm-outgoing:is-out-signing", PropModel.PropType.STRING));
                 put("Руководитель-инициатор", new PropModel("lecm-outgoing:chief-initiator-assoc", PropModel.PropType.STRING));
                 put("Документ отложен", new PropModel("lecm-outgoing:is-deferred", PropModel.PropType.BOOLEAN));
                 put("Требуется ответ", new PropModel("lecm-outgoing:response-required", PropModel.PropType.BOOLEAN));
-                put("Разрешить редактирование владельца документа вручную", new PropModel("lecm-eds-aspect:change-eds-document-owner-manually", PropModel.PropType.BOOLEAN));
                 put("Предыдущий автор", new PropModel("lecm-outgoing:previous-author", PropModel.PropType.STRING));
                 put("Основание подписания", new PropModel("lecm-outgoing:signing-basis", PropModel.PropType.STRING));
             }
@@ -120,7 +120,21 @@ public class PropsNames {
         put(DocType.ERRANDS, new HashMap<String, PropModel>() {
             {
                 put("Ответственный исполнитель", new PropModel("lecm-errands:complex-executor-assoc-text-content", PropModel.PropType.STRING));
-                put("Срок исполнения", new PropModel("lecm-errands:limitation-date", PropModel.PropType.STRING));
+                put("Срок исполнения", new PropModel("lecm-errands:limitation-date", PropModel.PropType.DATE));
+                put("Отменить подчиненные поручения", new PropModel("lecm-errands:cancel-children", PropModel.PropType.BOOLEAN));
+                put("Требуется отчет", new PropModel("lecm-errands-dic:errand-type-report-required", PropModel.PropType.BOOLEAN));
+                put("Флаг для отключения действий на статусе", new PropModel("lecm-errands:hold-on-project", PropModel.PropType.BOOLEAN));
+                put("Уведомлять Автора", new PropModel("lecm-errands:author-notification", PropModel.PropType.BOOLEAN));
+                put("Документ-основание", new PropModel("lecm-errands:base-document-assoc", PropModel.PropType.STRING));
+                put("Заголовок документа-основания", new PropModel("lecm-errands:base-document-content", PropModel.PropType.STRING));
+                put("Групповое поручение", new PropModel("lecm-errands:is-group", PropModel.PropType.BOOLEAN));
+                put("Тип поручения", new PropModel("lecm-errands:category-assoc", PropModel.PropType.STRING));
+                put("Сигнал об отмене", new PropModel("lecm-errands:cancellation-signal", PropModel.PropType.BOOLEAN));
+                put("На внешнем контроле", new PropModel("lecm-errands-aspect:on-external-control", PropModel.PropType.BOOLEAN));
+                put("Тип срока исполнения", new PropModel("lecm-errands:limitation-date-type", PropModel.PropType.STRING));
+                put("На докладе", new PropModel("lecm-errands:on-report", PropModel.PropType.BOOLEAN));
+                put("Текст поручения", new PropModel("lecm-errands:content", PropModel.PropType.STRING));
+                put("Флаг для перехода в статус \"Закрыто\"", new PropModel("lecm-errands:transit-to-closed", PropModel.PropType.BOOLEAN));
             }
         });
 

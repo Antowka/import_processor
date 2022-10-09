@@ -5,14 +5,11 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.batch.item.file.LineMapper;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 import ru.antowka.importer.dictionary.DocType;
 import ru.antowka.importer.dictionary.PropsNames;
 import ru.antowka.importer.model.NodeModel;
 import ru.antowka.importer.model.PropModel;
 
-import javax.print.Doc;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
