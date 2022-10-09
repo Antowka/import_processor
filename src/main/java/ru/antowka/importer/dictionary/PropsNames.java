@@ -59,6 +59,7 @@ public class PropsNames {
             put("Разрешить редактирование владельца документа вручную", new PropModel("lecm-eds-aspect:change-eds-document-owner-manually", PropModel.PropType.BOOLEAN));
             put("Закрыть неисполненные подчиненные поручения", new PropModel("lecm-eds-aspect:completion-signal-close-child",PropModel.PropType.BOOLEAN));
             put("Инсайдерская информация", new PropModel("lecm-eds-aspect:inside-information",PropModel.PropType.BOOLEAN));
+            put("Предыдущий статус", new PropModel("lecm-eds-aspect:previous-status",PropModel.PropType.STRING));
         }
     };
 
@@ -166,6 +167,20 @@ public class PropsNames {
                 put("Необходима служебная записка", new PropModel("lecm-errands:is-internal-doc-required-for-intermediate-report",PropModel.PropType.BOOLEAN));
                 put("В течение", new PropModel("lecm-errands:period-during",PropModel.PropType.INT));
                 put("Краткосрочное", new PropModel("lecm-errands:is-limit-short",PropModel.PropType.BOOLEAN));
+                put("Номер документа-основания", new PropModel("lecm-errands:additional-doc-number",PropModel.PropType.STRING));
+                put("Исполнить точно в срок", new PropModel("lecm-errands:just-in-time",PropModel.PropType.BOOLEAN));
+                put("Служебный атрибут для всплытия событий", new PropModel("lecm-errands:event-counter",PropModel.PropType.BOOLEAN));
+                put("Флаг для перехода на статус \"На исполнении\"", new PropModel("lecm-errands:transit-to-on-execution",PropModel.PropType.BOOLEAN));
+                put("Отчёты соисполнителей", new PropModel("lecm-errands-ts:coexecutor-reports-assoc",PropModel.PropType.STRING));
+                put("График предоставления доклада", new PropModel("lecm-errands:periodic-report-date",PropModel.PropType.STRING));
+                put("Доступно исполнителю, подписанту и всем адресатам СЗ", new PropModel("lecm-errands:available-for-esr-of-internal",PropModel.PropType.BOOLEAN));
+                put("Направлять периодически", new PropModel("lecm-errands:periodically",PropModel.PropType.BOOLEAN));
+                put("Характер поручения", new PropModel("lecm-errands:character-assoc",PropModel.PropType.STRING));
+                put("Закрывает вышестоящее поручение", new PropModel("lecm-errands:auto-close",PropModel.PropType.BOOLEAN));
+                put("Просрочено", new PropModel("lecm-errands:is-expired",PropModel.PropType.BOOLEAN));
+                put("Короткое", new PropModel("lecm-errands:is-short",PropModel.PropType.BOOLEAN));
+                put("Предоставить доступ участникам дерева поручений", new PropModel("lecm-errands-aspect:provide-access-to-errands-tree",PropModel.PropType.BOOLEAN));
+                put("Контроль УКиП", new PropModel("lecm-errands:is-control-UKiP",PropModel.PropType.BOOLEAN));
             }
         });
 
