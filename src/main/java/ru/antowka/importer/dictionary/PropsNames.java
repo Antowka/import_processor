@@ -60,6 +60,7 @@ public class PropsNames {
             put("Закрыть неисполненные подчиненные поручения", new PropModel("lecm-eds-aspect:completion-signal-close-child",PropModel.PropType.BOOLEAN));
             put("Инсайдерская информация", new PropModel("lecm-eds-aspect:inside-information",PropModel.PropType.BOOLEAN));
             put("Предыдущий статус", new PropModel("lecm-eds-aspect:previous-status",PropModel.PropType.STRING));
+            put("Просрочено", new PropModel("lecm-eds-document:is-expired",PropModel.PropType.STRING));
         }
     };
 
@@ -183,6 +184,49 @@ public class PropsNames {
                 put("Контроль УКиП", new PropModel("lecm-errands:is-control-UKiP",PropModel.PropType.BOOLEAN));
             }
         });
+
+        put(DocType.INCOMING, new HashMap<String, PropModel>() {
+            {
+                put("Представитель корреспондента", new PropModel("lecm-incoming:addressee-assoc", PropModel.PropType.STRING));
+                put("Изменён срок исполнения", new PropModel("lecm-incoming:execution-date-changed", PropModel.PropType.BOOLEAN));
+                put("Исходящий номер", new PropModel("lecm-incoming:outgoing-number", PropModel.PropType.STRING));
+                put("Акционер ПАО «НК Роснефть»", new PropModel("lecm-incoming:is-correspondent-rosneft-stockholder", PropModel.PropType.BOOLEAN));
+                put("Переход в статус \"Зарегистрирован\"", new PropModel("lecm-incoming:auto-transition-to-registered", PropModel.PropType.BOOLEAN));
+                put("Превышен срок предоставления ответа", new PropModel("lecm-incoming:expired-execution-date", PropModel.PropType.BOOLEAN));
+                put("Адресат", new PropModel("lecm-incoming:recipient-assoc", PropModel.PropType.STRING));
+                put("Поступившее по канала", new PropModel("llecm-incoming:is-by-channel", PropModel.PropType.BOOLEAN));
+                put("UID организации отправителя", new PropModel("lecm-medo-aspects:incoming-organization-uid", PropModel.PropType.STRING));
+                put("Переход в статус \"Экспертное рассмотрение\"", new PropModel("lecm-incoming:auto-transition-to-expert-review", PropModel.PropType.BOOLEAN));
+                put("Вскрытие упаковки", new PropModel("lecm-incoming:is-open", PropModel.PropType.BOOLEAN));
+                put("Показать признак \"Требуется ответ\"", new PropModel("lecm-incoming:show-response-required", PropModel.PropType.BOOLEAN));
+                put("Создатели резолюций по входящему (Служебное)", new PropModel("lecm-incoming:resolution-creators", PropModel.PropType.STRING));
+                put("Переход в статус \"На исполнении\"", new PropModel("lecm-incoming:auto-transition-to-execution", PropModel.PropType.BOOLEAN));
+                put("Способ доставки", new PropModel("lecm-incoming:delivery-method-assoc", PropModel.PropType.STRING));
+                put("Нарушение целостности", new PropModel("lecm-incoming:integrity-fault", PropModel.PropType.BOOLEAN));
+                put("UID Временного документа", new PropModel("lecm-medo-aspects:incoming-temp-document-uid", PropModel.PropType.STRING));
+                put("Нарушение целостности вложений", new PropModel("lecm-incoming:attachments-integrity-fault", PropModel.PropType.BOOLEAN));
+                put("Нерегистрируемый", new PropModel("lecm-incoming:is-not-registered", PropModel.PropType.BOOLEAN));
+                put("Номер накладной", new PropModel("lecm-incoming:invoice-number", PropModel.PropType.STRING));
+                put("Получатели", new PropModel("lecm-eds-document:recipients-assoc", PropModel.PropType.STRING));
+                put("Дата исходящего", new PropModel("lecm-incoming:outgoing-date", PropModel.PropType.DATE));
+                put("Правительственное поручение", new PropModel("lecm-incoming:is-government-errand", PropModel.PropType.BOOLEAN));
+                put("Содержит персональные данные", new PropModel("lecm-eds-aspect:contains-personal-data", PropModel.PropType.BOOLEAN));
+                put("Лично", new PropModel("lecm-incoming:in-person", PropModel.PropType.BOOLEAN));
+                put("Рассматривающий", new PropModel("lecm-incoming:reviewer", PropModel.PropType.STRING));
+                put("Обнаружено отсутствие маркировки", new PropModel("lecm-incoming:marking-not-found", PropModel.PropType.BOOLEAN));
+                put("Регистрационный номер родительского документа", new PropModel("lecm-incoming:parent-regnum", PropModel.PropType.STRING));
+                put("Повторная обработка", new PropModel("lecm-incoming:is-retreatment", PropModel.PropType.BOOLEAN));
+                put("Документ был направлен адресатам", new PropModel("lecm-incoming:directed-to-addressees", PropModel.PropType.BOOLEAN));
+                put("Категории получателей (служебное)", new PropModel("lecm-incoming:recipient-categories", PropModel.PropType.STRING));
+                put("Документ был направлен экспертам", new PropModel("lecm-incoming:directed-to-experts", PropModel.PropType.BOOLEAN));
+                put("Возврат отправителю", new PropModel("lecm-incoming:return-to-sender", PropModel.PropType.BOOLEAN));
+                put("Доработка", new PropModel("lecm-incoming:finalization", PropModel.PropType.BOOLEAN));
+                put("Корреспондент", new PropModel("lecm-incoming:sender-assoc",PropModel.PropType.STRING));
+                put("Требуется ответ", new PropModel("lecm-incoming:response-required",PropModel.PropType.BOOLEAN));
+                put("Переход в статус \"Исполнен\"", new PropModel("lecm-incoming:auto-transition-to-registered",PropModel.PropType.STRING));
+            }
+        });
+
 
         //Карточка согласования
         put(DocType.APPROVAL_CARD, new HashMap<String, PropModel>() {
