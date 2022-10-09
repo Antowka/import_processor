@@ -50,6 +50,7 @@ public class PropsNames {
         put("Номер", new PropModel("lecm-document-aspects:reg-data-number",PropModel.PropType.STRING));
         put("Регистратор", new PropModel("rn-document-aspects:potential-registrars-assoc",PropModel.PropType.STRING));
         put("Срочно", new PropModel("lecm-eds-aspect:is-urgent",PropModel.PropType.BOOLEAN));
+        put("Предыдущий статус", new PropModel("lecm-eds-aspect:previous-status",PropModel.PropType.STRING));
 
         //Исходящий
         put("Причины возврата", new PropModel("lecm-eds-ts:reasons-for-return-assoc",PropModel.PropType.STRING));
@@ -141,7 +142,14 @@ public class PropsNames {
         put("Документ был направлен экспертам", new PropModel("lecm-incoming:directed-to-experts",PropModel.PropType.BOOLEAN));
         put("Возврат отправителю", new PropModel("lecm-incoming:return-to-sender",PropModel.PropType.BOOLEAN));
         put("Доработка", new PropModel("lecm-incoming:finalization",PropModel.PropType.BOOLEAN));
-        put("Предыдущий статус", new PropModel("lecm-eds-aspect:previous-status",PropModel.PropType.STRING));
+
+
+        // Карточка согласования
+        put("Код вида документа (служебное)", new PropModel("rn-document-approval:document-kind-code",PropModel.PropType.STRING));
+        put("Вид документа", new PropModel("rn-document-approval:document-kind-assoc",PropModel.PropType.STRING));
+        put("Комментарий", new PropModel("rn-document-approval:comment",PropModel.PropType.STRING));
+        put("Приложен протокол разногласий", new PropModel("lecm-approval-rn-aspects:document-disagreement-protocol-added",PropModel.PropType.BOOLEAN));
+        put("Разрешить редактирование владельца документа вручную", new PropModel("lecm-eds-aspect:change-eds-document-owner-manually",PropModel.PropType.BOOLEAN));
 
     }};
 
