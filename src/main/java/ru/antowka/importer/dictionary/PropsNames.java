@@ -243,14 +243,16 @@ public class PropsNames {
 
     public static PropModel getPropNameByPresentString(DocType docType, String presentString) {
 
-        final PropModel propModel = generalProps.get(presentString);
+        PropModel propModelByDocType = propsAssociationsWithNames.get(docType).get(presentString);
 
-        if (Objects.nonNull(propModel)) {
-            return propModel;
+        if (Objects.isNull(propModelByDocType)) {
+            propModelByDocType = generalProps.get(presentString);
         }
 
-        return propsAssociationsWithNames
-                .get(docType)
-                .computeIfAbsent(presentString, key -> new PropModel(key.replace(" ", "_"), PropModel.PropType.FAIL));
+        if (Objects.isNull(propModelByDocType)) {
+            return new PropModel(presentString, PropModel.PropType.FAIL);
+        }
+
+        return propModelByDocType;
     }
 }
