@@ -10,14 +10,17 @@ import ru.antowka.importer.dictionary.PropsNames;
 import ru.antowka.importer.model.NodeModel;
 import ru.antowka.importer.model.PropModel;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class NodeMapper implements LineMapper<NodeModel> {
+
+    private SimpleDateFormat inFormatter = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
+    private SimpleDateFormat outFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
 
     /**
      * Используется для Batch-a в reader-e
@@ -92,7 +95,13 @@ public class NodeMapper implements LineMapper<NodeModel> {
                     }
 
                     final PropModel propNameByPresentString = PropsNames.getPropNameByPresentString(docType, key);
-                    propNameByPresentString.setValue(value);
+                    if (PropModel.PropType.DATE.equals(propNameByPresentString.getType())) {
+                        value = dateFormatter(value);
+                        propNameByPresentString.setValue(value);
+                    } else {
+                        propNameByPresentString.setValue(value);
+                    }
+
                     return propNameByPresentString;
                 })
                 .filter(Objects::nonNull)
@@ -129,5 +138,22 @@ public class NodeMapper implements LineMapper<NodeModel> {
         }
 
         return DocType.getTypeByKeyword(name);
+    }
+
+    /**
+     * Форматирует дату в формат для JSON (чтоб удобно было использовать при импорте в JS)
+     *
+     * @return
+     */
+    private String dateFormatter(String dateString) {
+
+        try {
+            final Date date = inFormatter.parse(dateString);
+            dateString = outFormatter.format(date);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        return dateString;
     }
 }
