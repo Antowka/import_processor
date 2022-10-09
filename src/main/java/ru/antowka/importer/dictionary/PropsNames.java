@@ -86,7 +86,21 @@ public class PropsNames {
         put("Дата выдачи", new PropModel("lecm-resolutions:transition-to-execution-date",PropModel.PropType.DATE));
         put("Доступно исполнителю, подписанту и всем адресатам СЗ", new PropModel("lecm-resolutions:available-for-esr-of-internal",PropModel.PropType.BOOLEAN));
         put("Просрочено", new PropModel("lecm-resolutions:is-expired",PropModel.PropType.BOOLEAN));
-
+        put("Сигнал об аннулировании - причина", new PropModel("lecm-resolutions:annul-signal-reason",PropModel.PropType.STRING));
+        put("Сигнал оn комплекта", new PropModel("lecm-resolutions:suite-signal",PropModel.PropType.STRING));
+        put("Автор (служебное)", new PropModel("lecm-resolutions:author-assoc-text-content",PropModel.PropType.STRING));
+        put("Контролер (служебное)", new PropModel("lecm-resolutions:controller-assoc-text-content",PropModel.PropType.STRING));
+        put("Основание (служебное)", new PropModel("lecm-resolutions:base-assoc-text-content",PropModel.PropType.STRING));
+        put("Документ-основание (служебное)", new PropModel("lecm-resolutions:base-document-assoc-text-content",PropModel.PropType.STRING));
+        put("Способ исполнения (служебное)", new PropModel("lecm-resolutions:completion-method-assoc-text-content",PropModel.PropType.STRING));
+        put("Срок исполнения - тип", new PropModel("lecm-resolutions:limitation-date-type",PropModel.PropType.STRING));
+        put("Срок исполнения", new PropModel("lecm-resolutions:limitation-date-text",PropModel.PropType.STRING));
+        put("Список поручений (служебное)", new PropModel("lecm-resolutions:errands-json",PropModel.PropType.STRING));
+        put("Имя атрибута документа основания для срока исполнения (служебное)", new PropModel("lecm-resolutions:base-doc-execution-date-attr-name",PropModel.PropType.STRING));
+        put("Основания для подготовки СЗ", new PropModel("lecm-resolutions:grounds-for-preparation-of-internal",PropModel.PropType.STRING));
+        put("Группа контроля (служебное)", new PropModel("lecm-resolutions:control-group-assoc-text-content",PropModel.PropType.STRING));
+        put("Контролеры пунктов", new PropModel("lecm-resolutions:items-assoc-controller-assoc-ref",PropModel.PropType.STRING));
+        put("Назначил (служебное)", new PropModel("lecm-resolutions:assigned-assoc-text-content",PropModel.PropType.STRING));
 
     }};
 
