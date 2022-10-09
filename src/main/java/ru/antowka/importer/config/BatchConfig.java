@@ -37,7 +37,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Configuration
@@ -155,7 +157,7 @@ public class BatchConfig {
 
         while (!startDate.equals(endDate)) {
             final Path path = Paths.get(pathToContentStore, startDate.buildPath());
-            final List<Path> allFoldersAndFilesFromSubFolders = FileUtils.getAllFilesFromSubFolders(path, "<h3><a href=\"http://", htmlFileReadLimitKb);
+            final Set<Path> allFoldersAndFilesFromSubFolders = FileUtils.getAllFilesFromSubFolders(path, "<h3><a href=\"http://", htmlFileReadLimitKb);
 
             //переходим на следующий день для следующий итерации
             startDate.addDay();
@@ -166,7 +168,6 @@ public class BatchConfig {
 
             final List<Path> allFilesFromSubFolders = allFoldersAndFilesFromSubFolders
                     .stream()
-                    .filter(pathFoCheck -> !Files.isDirectory(pathFoCheck)) //Исключаем папки
                     .sorted((a, b) -> { //Сортировка для того, чтоб сверху оказались наиболее свежие файлы (т.к. версии потом будут удалены как дубли)
                         try {
                             final Object lastModifiedTimeA = Files.getAttribute(a, "lastModifiedTime");
@@ -200,7 +201,7 @@ public class BatchConfig {
     public Step mainStep() {
         return stepBuilderFactory.get("mainStep")
                 //.listener(new StepResultListener())
-                .<NodeModel, NodeModel>chunk(6)
+                .<NodeModel, NodeModel>chunk(2)
                 .reader(multiResourceItemReader())
                 .faultTolerant()
                 .processor(compositeItemProcessor())

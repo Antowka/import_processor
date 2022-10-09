@@ -5,6 +5,7 @@ import ru.antowka.importer.dto.NodeDto;
 import ru.antowka.importer.model.NodeModel;
 import ru.antowka.importer.model.PropModel;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -28,8 +29,13 @@ public class NodeToDtoMapper {
     }
 
     private Map<String, String> mapPropsToDto(Set<PropModel> props) {
-        return props
-                .stream()
-                .collect(Collectors.toMap(PropModel::getName, PropModel::getValue));
+        try {
+            return props
+                    .stream()
+                    .collect(Collectors.toMap(PropModel::getName, PropModel::getValue));
+        } catch (Exception e) {
+            return new HashMap<>();
+        }
+
     }
 }

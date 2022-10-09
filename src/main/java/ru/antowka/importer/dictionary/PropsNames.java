@@ -68,7 +68,7 @@ public class PropsNames {
             put("Стаститика", new PropModel("lecm-review-ts:doc-review-statistics", PropModel.PropType.STRING));
             put("Флаг необходимости перевода на регистрацию", new PropModel("lecm-eds-aspect:move-to-registration", PropModel.PropType.STRING));
             put("Исполнители поручений", new PropModel("lecm-errands-aspect:errands-executors-assoc", PropModel.PropType.ASSOC));
-            put("Состояние исполнения", new PropModel("prop_lecm-eds-aspect:execution-state", PropModel.PropType.STRING));
+            //put("Состояние исполнения", new PropModel("prop_lecm-eds-aspect:execution-state", PropModel.PropType.STRING));
         }
     };
 
@@ -227,7 +227,7 @@ public class PropsNames {
                 put("Доработка", new PropModel("lecm-incoming:finalization", PropModel.PropType.BOOLEAN));
                 put("Корреспондент", new PropModel("lecm-incoming:sender-assoc",PropModel.PropType.ASSOC));
                 put("Требуется ответ", new PropModel("lecm-incoming:response-required",PropModel.PropType.BOOLEAN));
-                put("Переход в статус \"Исполнен\"", new PropModel("lecm-incoming:auto-transition-to-registered",PropModel.PropType.STRING));
+                put("Переход в статус \"Исполнен\"", new PropModel("lecm-incoming:transition-to-execute",PropModel.PropType.STRING));
             }
         });
 
