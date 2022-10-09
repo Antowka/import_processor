@@ -64,6 +64,8 @@ public class PropsNames {
             put("Получатели", new PropModel("lecm-eds-document:recipients-assoc", PropModel.PropType.STRING));
             put("Примечание", new PropModel("lecm-eds-document:note", PropModel.PropType.STRING));
             put("Исполнитель", new PropModel("lecm-eds-document:executor-assoc", PropModel.PropType.STRING));
+            put("Статистика исполнения (JSON)", new PropModel("lecm-eds-aspect:execution-statistics", PropModel.PropType.STRING));
+            put("Стаститика", new PropModel("lecm-review-ts:doc-review-statistics", PropModel.PropType.STRING));
         }
     };
 
@@ -234,7 +236,6 @@ public class PropsNames {
                 put("Вид документа", new PropModel("rn-document-approval:document-kind-assoc",PropModel.PropType.STRING));
                 put("Комментарий", new PropModel("rn-document-approval:comment",PropModel.PropType.STRING));
                 put("Приложен протокол разногласий", new PropModel("lecm-approval-rn-aspects:document-disagreement-protocol-added",PropModel.PropType.BOOLEAN));
-                put("Разрешить редактирование владельца документа вручную", new PropModel("lecm-eds-aspect:change-eds-document-owner-manually",PropModel.PropType.BOOLEAN));
                 put("Антикоррупционная экспертиза", new PropModel("rn-document-approval:anti-corruption-expertise",PropModel.PropType.BOOLEAN));
             }
         });
@@ -258,6 +259,22 @@ public class PropsNames {
                 put("Доступность добавления оснований для подготовки СЗ", new PropModel("lecm-internal:add-grounds-documents-available", PropModel.PropType.BOOLEAN));
                 put("Новый запрос", new PropModel("lecm-internal:new-query", PropModel.PropType.BOOLEAN));
                 put("Оперативно", new PropModel("lecm-internal:is-operatively", PropModel.PropType.BOOLEAN));
+            }
+        });
+        //Протокол
+        put(DocType.PROTOCOL, new HashMap<String, PropModel>() {
+            {
+                put("Активные рассматривающие", new PropModel("lecm-review-ts:active-reviewers",PropModel.PropType.STRING));
+                put("Председатель", new PropModel("lecm-protocol:meeting-chairman-assoc", PropModel.PropType.STRING));
+                put("На докладе", new PropModel("lecm-protocol:on-report", PropModel.PropType.BOOLEAN));
+                put("Заочное", new PropModel("lecm-protocol:extramural", PropModel.PropType.BOOLEAN));
+                put("Согласование сторонними участниками", new PropModel("lecm-protocol:need-third-party-approve", PropModel.PropType.BOOLEAN));
+                put("Участники", new PropModel("lecm-protocol:attended-assoc", PropModel.PropType.STRING));
+                put("Сторонние участники", new PropModel("lecm-protocol:third-party-attendees", PropModel.PropType.STRING));
+                put("Секретарь", new PropModel("lecm-protocol:secretary-assoc", PropModel.PropType.STRING));
+                put("Дата совещания (заседания)", new PropModel("lecm-protocol:meeting-date", PropModel.PropType.DATE));
+                put("Состояние исполнения", new PropModel("lecm-review-aspects:related-review-state", PropModel.PropType.STRING));
+                put("Пункты", new PropModel("lecm-protocol-ts:points-assoc-text-content", PropModel.PropType.STRING));
             }
         });
     }};

@@ -14,6 +14,7 @@ public enum DocType {
     OUTGOING("Исходящий документ", "lecm-outgoing:document"),
     APPROVAL_CARD("Карточка согласования", "rn-document-approval:document"),
     INTERNAL("Служебная записка","lecm-internal:document"),
+    PROTOCOL("Протокол","lecm-protocol:document"),
     FAIL("Не определён", "fail");
 
     private final String keyword;
