@@ -80,7 +80,7 @@ public class PropsNames {
                 put("Флаг для отправки на подписание", new PropModel("lecm-outgoing:transit-to-signing", PropModel.PropType.BOOLEAN));
                 put("Корреспондент", new PropModel("lecm-outgoing:contractor-assoc", PropModel.PropType.ASSOC));
                 put("Подтверждать доставку", new PropModel("lecm-outgoing:confirm-delivery", PropModel.PropType.STRING));
-                put("Подписан вне СЭД", new PropModel("lecm-outgoing:is-out-signing", PropModel.PropType.STRING));
+                put("Подписан вне СЭД", new PropModel("lecm-outgoing:is-out-signing",  PropModel.PropType.STRING));
                 put("Руководитель-инициатор", new PropModel("lecm-outgoing:chief-initiator-assoc", PropModel.PropType.ASSOC));
                 put("Документ отложен", new PropModel("lecm-outgoing:is-deferred", PropModel.PropType.BOOLEAN));
                 put("Требуется ответ", new PropModel("lecm-outgoing:response-required", PropModel.PropType.BOOLEAN));
