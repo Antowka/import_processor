@@ -64,8 +64,6 @@ public class PropsNames {
             put("Получатели", new PropModel("lecm-eds-document:recipients-assoc", PropModel.PropType.ASSOC));
             put("Примечание", new PropModel("lecm-eds-document:note", PropModel.PropType.STRING));
             put("Исполнитель", new PropModel("lecm-eds-document:executor-assoc", PropModel.PropType.ASSOC));
-            put("Статистика исполнения (JSON)", new PropModel("lecm-eds-aspect:execution-statistics", PropModel.PropType.STRING));
-            put("Стаститика", new PropModel("lecm-review-ts:doc-review-statistics", PropModel.PropType.STRING));
             put("Флаг необходимости перевода на регистрацию", new PropModel("lecm-eds-aspect:move-to-registration", PropModel.PropType.STRING));
             put("Исполнители поручений", new PropModel("lecm-errands-aspect:errands-executors-assoc", PropModel.PropType.ASSOC));
             //put("Состояние исполнения", new PropModel("prop_lecm-eds-aspect:execution-state", PropModel.PropType.STRING));
