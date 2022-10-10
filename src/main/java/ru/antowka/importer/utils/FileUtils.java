@@ -1,6 +1,6 @@
 package ru.antowka.importer.utils;
 
-import org.springframework.util.StringUtils;
+import ru.antowka.importer.model.DateFolderModel;
 import ru.antowka.importer.processing.HtmlFileVisitor;
 
 import java.io.FileInputStream;
@@ -9,13 +9,12 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
-import java.util.List;
+import java.nio.file.Paths;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class FileUtils {
-
-    private static final int MAX_DEPTH = 999;
 
     /**
      * Поиск всех файлов во всех поддиректориях (глубина)
@@ -51,5 +50,26 @@ public class FileUtils {
         }
 
         return "";
+    }
+
+    /**
+     * Строим пути по часам внутри дня
+     *
+     * @param dateFolderModel
+     * @return
+     */
+    public static Set<Path> buildPathsForHoursFolderByDay(String contentStorePath, DateFolderModel dateFolderModel) {
+        final String path = dateFolderModel.buildPath();
+        return IntStream
+                .range(0, 23)
+                .mapToObj(hour -> {
+                    final Path pathForMap = Paths.get(contentStorePath, path, String.valueOf(hour));
+                    System.out.println("Check path: " + pathForMap);
+                    return pathForMap;
+                })
+                .filter(pathForCheck -> {
+                  return Files.exists(pathForCheck);
+                })
+                .collect(Collectors.toSet());
     }
 }

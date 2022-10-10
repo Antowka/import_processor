@@ -297,7 +297,14 @@ public class PropsNames {
 
     public static PropModel getPropNameByPresentString(DocType docType, String presentString) {
 
-        PropModel propModelByDocType = propsAssociationsWithNames.get(docType).get(presentString);
+        PropModel propModelByDocType;
+        try {
+            propModelByDocType = propsAssociationsWithNames
+                    .get(docType)
+                    .get(presentString);
+        } catch (NullPointerException e) {
+           propModelByDocType = new PropModel(presentString.replace(" ", "_"), PropModel.PropType.FAIL);
+        }
 
         if (Objects.isNull(propModelByDocType)) {
             propModelByDocType = generalProps.get(presentString);

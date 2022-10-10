@@ -4,6 +4,9 @@ import lombok.Data;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * Представление даты в виде структуры папок
@@ -18,12 +21,22 @@ public class DateFolderModel {
 
     private int day;
 
+    private Date date;
+
+    private static SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yyyy");
+
 
     public DateFolderModel(String date) {
         final String[] splitDate = date.split("\\.");
         if (splitDate.length != 3) {
             System.out.println("Date incorrect: " + date);
             throw new IllegalArgumentException("Date incorrect: " + date);
+        }
+
+        try {
+            this.date = formatter.parse(date);
+        } catch (ParseException e) {
+            throw new IllegalArgumentException("Date format is wrong (use dd.MM.yyyy): " + date);
         }
 
         year = Integer.parseInt(splitDate[2]);
@@ -50,6 +63,12 @@ public class DateFolderModel {
             month++;
             day = 1;
         }
+
+        try {
+            this.date = formatter.parse(day + "." + month + "." + year);
+        } catch (ParseException e) {
+            throw new IllegalArgumentException("Date format is wrong (use dd.MM.yyyy): " + date);
+        }
     }
 
     /**
@@ -67,13 +86,21 @@ public class DateFolderModel {
      * @param dateForCompare дата для сравнения
      * @return
      */
-    public boolean moreThan(DateFolderModel dateForCompare) {
-        return this.year >= dateForCompare.getYear() && this.month >= dateForCompare.month && this.day >= dateForCompare.day;
+    public boolean moreThan(Date dateForCompare) {
+        return this.date.after(dateForCompare);
     }
 
     @Override
     public boolean equals(Object o) {
         DateFolderModel dateForCompare = (DateFolderModel) o;
-        return this.year == dateForCompare.getYear() && this.month == dateForCompare.month && this.day == dateForCompare.day;
+        return this.date.equals(dateForCompare.getDate());
+    }
+
+    public Date getDate() {
+        return this.date;
+    }
+
+    public String getDateForOutputPath() {
+        return formatter.format(this.date);
     }
 }

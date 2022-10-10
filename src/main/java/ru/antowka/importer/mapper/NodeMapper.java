@@ -155,6 +155,10 @@ public class NodeMapper implements LineMapper<NodeModel> {
      */
     private String dateFormatter(String dateString) {
 
+        if (dateString.contains("LIMITLESS")) {
+            return dateString;
+        }
+
         try {
             final Date date = inFormatter.parse(dateString);
             dateString = outFormatter.format(date);
