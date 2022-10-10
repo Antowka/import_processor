@@ -292,6 +292,7 @@ public class PropsNames {
                 put("Ожидаемые результаты/положительные эффекты от утверждения", new PropModel("lecm-ord:expected-results", PropModel.PropType.STRING));
                 put("Флаг для перехода на статус \"На исполнении\"", new PropModel("lecm-ord:transit-to-on-execution", PropModel.PropType.BOOLEAN));
                 put("Флаг для перехода на статус \"Работа завершена\"", new PropModel("lecm-ord:transit-to-work-completed", PropModel.PropType.BOOLEAN));
+                put("Контролёр", new PropModel("lecm-ord:controller-assoc", PropModel.PropType.STRING));
             }
         });
     }};
