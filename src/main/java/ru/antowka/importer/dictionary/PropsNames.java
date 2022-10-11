@@ -64,8 +64,6 @@ public class PropsNames {
             put("Получатели", new PropModel("lecm-eds-document:recipients-assoc", PropModel.PropType.ASSOC));
             put("Примечание", new PropModel("lecm-eds-document:note", PropModel.PropType.STRING));
             put("Исполнитель", new PropModel("lecm-eds-document:executor-assoc", PropModel.PropType.ASSOC));
-            put("Статистика исполнения (JSON)", new PropModel("lecm-eds-aspect:execution-statistics", PropModel.PropType.STRING));
-            put("Стаститика", new PropModel("lecm-review-ts:doc-review-statistics", PropModel.PropType.STRING));
             put("Флаг необходимости перевода на регистрацию", new PropModel("lecm-eds-aspect:move-to-registration", PropModel.PropType.STRING));
             put("Исполнители поручений", new PropModel("lecm-errands-aspect:errands-executors-assoc", PropModel.PropType.ASSOC));
             //put("Состояние исполнения", new PropModel("prop_lecm-eds-aspect:execution-state", PropModel.PropType.STRING));
@@ -82,7 +80,7 @@ public class PropsNames {
                 put("Флаг для отправки на подписание", new PropModel("lecm-outgoing:transit-to-signing", PropModel.PropType.BOOLEAN));
                 put("Корреспондент", new PropModel("lecm-outgoing:contractor-assoc", PropModel.PropType.ASSOC));
                 put("Подтверждать доставку", new PropModel("lecm-outgoing:confirm-delivery", PropModel.PropType.STRING));
-                put("Подписан вне СЭД", new PropModel("lecm-outgoing:is-out-signing", PropModel.PropType.STRING));
+                put("Подписан вне СЭД", new PropModel("lecm-outgoing:is-out-signing",  PropModel.PropType.STRING));
                 put("Руководитель-инициатор", new PropModel("lecm-outgoing:chief-initiator-assoc", PropModel.PropType.ASSOC));
                 put("Документ отложен", new PropModel("lecm-outgoing:is-deferred", PropModel.PropType.BOOLEAN));
                 put("Требуется ответ", new PropModel("lecm-outgoing:response-required", PropModel.PropType.BOOLEAN));
@@ -292,13 +290,21 @@ public class PropsNames {
                 put("Ожидаемые результаты/положительные эффекты от утверждения", new PropModel("lecm-ord:expected-results", PropModel.PropType.STRING));
                 put("Флаг для перехода на статус \"На исполнении\"", new PropModel("lecm-ord:transit-to-on-execution", PropModel.PropType.BOOLEAN));
                 put("Флаг для перехода на статус \"Работа завершена\"", new PropModel("lecm-ord:transit-to-work-completed", PropModel.PropType.BOOLEAN));
+                put("Контролёр", new PropModel("lecm-ord:controller-assoc", PropModel.PropType.STRING));
             }
         });
     }};
 
     public static PropModel getPropNameByPresentString(DocType docType, String presentString) {
 
-        PropModel propModelByDocType = propsAssociationsWithNames.get(docType).get(presentString);
+        PropModel propModelByDocType;
+        try {
+            propModelByDocType = propsAssociationsWithNames
+                    .get(docType)
+                    .get(presentString);
+        } catch (NullPointerException e) {
+           propModelByDocType = new PropModel(presentString.replace(" ", "_"), PropModel.PropType.FAIL);
+        }
 
         if (Objects.isNull(propModelByDocType)) {
             propModelByDocType = generalProps.get(presentString);

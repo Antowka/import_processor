@@ -1,11 +1,13 @@
 package ru.antowka.importer.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.poi.ss.usermodel.DateUtil;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+import org.springframework.batch.core.job.builder.JobBuilder;
+import org.springframework.batch.core.job.builder.SimpleJobBuilder;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.item.file.MultiResourceItemReader;
 import org.springframework.batch.item.file.builder.MultiResourceItemReaderBuilder;
@@ -37,8 +39,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -53,24 +55,16 @@ public class BatchConfig {
     public StepBuilderFactory stepBuilderFactory;
 
     /**
-     * Начальная дата обработки файлов
-     * Формат: 01.09.2022
+     * Дата обработки файлов
+     * Формат: 01.09.2022 для properties
      */
-    @Value("${date.processing.start}")
-    private String startDateProcessing;
+    final DateFolderModel processingDate;
 
-    /**
-     * Конечная дата обработки файлов
-     * Формат: 30.09.2022
-     */
-    @Value("${date.processing.end}")
-    private String endDateProcessing;
 
     /**
      * Абсолютный путь к результатирующему файлу
      */
-    @Value("${path.file.output}")
-    private String outputFile;
+    private Path outputFolder;
 
     /**
      * Абсолютный путь к contentstore
@@ -84,11 +78,20 @@ public class BatchConfig {
     @Value("${html.file.read.limit.kb}")
     private int htmlFileReadLimitKb;
 
-    @Bean
-    public MultiResourceItemReader<NodeModel> multiResourceItemReader() {
+
+    public BatchConfig(@Value("${date.processing.date}") String startDateProcessing, @Value("${path.folder.output}") String outPathString) throws IOException {
+        this.processingDate = new DateFolderModel(startDateProcessing);
+        this.outputFolder = Paths.get(outPathString, processingDate.getDateForOutputPath());
+
+        if (!Files.exists(this.outputFolder)) {
+            Files.createDirectory(this.outputFolder);
+        }
+    }
+
+    public MultiResourceItemReader<NodeModel> multiResourceItemReader(final Resource[] filesForProcessing) {
         return new MultiResourceItemReaderBuilder<NodeModel>()
                 .delegate(reader())
-                .resources(getFilesForProcessing())
+                .resources(filesForProcessing)
                 .name("multiReader")
                 .build();
     }
@@ -108,15 +111,14 @@ public class BatchConfig {
         return new DtoProcessor();
     }
 
-    @Bean
-    public JsonFileItemWriter<NodeModel> writer() {
+    public JsonFileItemWriter<NodeModel> writer(Path outputFileForStep) {
         JsonFileItemWriterBuilder<NodeModel> builder = new JsonFileItemWriterBuilder<>();
         JacksonJsonObjectMarshaller<NodeModel> marshaller = new JacksonJsonObjectMarshaller<>();
 
         return builder
                 .name("jsonNodeModelWriter")
                 .jsonObjectMarshaller(marshaller)
-                .resource(new FileSystemResource(outputFile))
+                .resource(new FileSystemResource(outputFileForStep))
                 .build();
     }
 
@@ -129,12 +131,46 @@ public class BatchConfig {
 
     @Bean
     public Job readHtmlFilesJob() {
-        return jobBuilderFactory.get("readHtmlFilesJob")
-                .incrementer(new RunIdIncrementer())
-                //.listener(new JobResultListener())
-                .flow(mainStep())
-                .end()
-                .build();
+
+        //Если кривые даты
+        if (Objects.isNull(processingDate)) {
+            throw new IllegalArgumentException("Date is fail");
+        }
+
+        Path dateFolder = Paths.get(pathToContentStore, processingDate.buildPath());
+        if (!Files.exists(dateFolder)) {
+            return null;
+        }
+
+        final JobBuilder readHtmlFilesJob = jobBuilderFactory
+                .get("readHtmlFilesJob_" + Math.random())
+                .incrementer(new RunIdIncrementer());
+
+        SimpleJobBuilder flow = null;
+        int stepCounter = 0;
+
+        final Set<Path> pathsOfHoursInDay = FileUtils.buildPathsForHoursFolderByDay(pathToContentStore, processingDate);
+        for (Path hourPath : pathsOfHoursInDay) {
+
+            final Resource[] filesForProcessing = getFilesForProcessing(hourPath);
+
+            if (filesForProcessing != null) {
+                if (Objects.isNull(flow)) {
+                    flow = readHtmlFilesJob.start(mainStep("step_" + stepCounter, filesForProcessing));
+                } else {
+                    flow.next(mainStep("step_" + stepCounter, filesForProcessing));
+                }
+                stepCounter++;
+            } else {
+                continue;
+            }
+        }
+
+        if (Objects.isNull(flow)) {
+            throw new IllegalArgumentException("Flow is empty, some problems with arguments (start date, end date) or path to contentStore");
+        }
+
+        return flow.build();
     }
 
 
@@ -143,69 +179,47 @@ public class BatchConfig {
      *
      * @return
      */
-    private Resource[] getFilesForProcessing() {
+    private Resource[] getFilesForProcessing(Path path) {
 
-        final DateFolderModel startDate = new DateFolderModel(startDateProcessing);
-        final DateFolderModel endDate = new DateFolderModel(endDateProcessing);
+        final Set<Path> allFoldersAndFilesFromSubFolders = FileUtils.getAllFilesFromSubFolders(path, "<h3><a href=\"http", htmlFileReadLimitKb);
 
-        //Проверяем на корректность даты
-        if (startDate.moreThan(endDate)) {
-            throw new IllegalArgumentException("Date arguments is wrong: " + startDateProcessing + " to " + endDateProcessing);
+        if (CollectionUtils.isEmpty(allFoldersAndFilesFromSubFolders)) {
+            System.out.println("Folder doesn't exist or doesn't have html files with searchObj: " + path);
+            return null;
         }
 
-        List<Resource> resources = new ArrayList<>();
+        final List<Path> allFilesFromSubFolders = allFoldersAndFilesFromSubFolders
+                .stream()
+                .sorted((a, b) -> { //Сортировка для того, чтоб сверху оказались наиболее свежие файлы (т.к. версии потом будут удалены как дубли)
+                    try {
+                        final Object lastModifiedTimeA = Files.getAttribute(a, "lastModifiedTime");
+                        final Object lastModifiedTimeB = Files.getAttribute(b, "lastModifiedTime");
+                        return ((FileTime) lastModifiedTimeB).compareTo((FileTime) lastModifiedTimeA);
+                    } catch (IOException e) {
+                        System.out.println("File doesn't have lastModifiedTime attr. Files: \n -" + a + "\n -" + b);
+                    }
+                    return 1;
+                })
+                .collect(Collectors.toList());
 
-        while (!startDate.equals(endDate)) {
-            final Path path = Paths.get(pathToContentStore, startDate.buildPath());
-            final Set<Path> allFoldersAndFilesFromSubFolders = FileUtils.getAllFilesFromSubFolders(path, "<h3><a href=\"http://", htmlFileReadLimitKb);
-
-            //переходим на следующий день для следующий итерации
-            startDate.addDay();
-
-            if (CollectionUtils.isEmpty(allFoldersAndFilesFromSubFolders)) {
-                continue;
-            }
-
-            final List<Path> allFilesFromSubFolders = allFoldersAndFilesFromSubFolders
-                    .stream()
-                    .sorted((a, b) -> { //Сортировка для того, чтоб сверху оказались наиболее свежие файлы (т.к. версии потом будут удалены как дубли)
-                        try {
-                            final Object lastModifiedTimeA = Files.getAttribute(a, "lastModifiedTime");
-                            final Object lastModifiedTimeB = Files.getAttribute(b, "lastModifiedTime");
-                            return ((FileTime) lastModifiedTimeB).compareTo((FileTime)lastModifiedTimeA);
-                        } catch (IOException e) {
-                            System.out.println("File doesn't have lastModifiedTime attr. Files: \n -" + a + "\n -" + b);
-                        }
-                        return 1;
-                    })
-                    .collect(Collectors.toList());
-
-            //Если файлы не нашли
-            if (CollectionUtils.isEmpty(allFilesFromSubFolders)) {
-                continue;
-            }
-
-            final List<Resource> newResourcesOfFoundFiles = allFilesFromSubFolders
-                    .stream()
-                    .map(FileSystemResource::new)
-                    .collect(Collectors.toList());
-            resources.addAll(newResourcesOfFoundFiles);
-        }
+        List<Resource> resources = allFilesFromSubFolders
+                .stream()
+                .map(FileSystemResource::new)
+                .collect(Collectors.toList());
 
         return resources.toArray(new Resource[]{});
     }
 
 
     //ШАГИ
-    @Bean
-    public Step mainStep() {
-        return stepBuilderFactory.get("mainStep")
+    public Step mainStep(String nameStep, final Resource[] filesForProcessing) {
+        return stepBuilderFactory.get(nameStep)
                 //.listener(new StepResultListener())
                 .<NodeModel, NodeModel>chunk(2)
-                .reader(multiResourceItemReader())
+                .reader(multiResourceItemReader(filesForProcessing))
                 .faultTolerant()
                 .processor(compositeItemProcessor())
-                .writer(writer())
+                .writer(writer(Paths.get(outputFolder.toString(),  "result_" + nameStep + ".json")))
                 //.taskExecutor(taskExecutor())
                 .build();
     }
