@@ -15,25 +15,20 @@ public class PropsNames {
             put("Имя", new PropModel("cm:name", PropModel.PropType.STRING));
             put("Дата создания", new PropModel("cm:created", PropModel.PropType.DATE));
             put("Создатель", new PropModel("cm:creator", PropModel.PropType.STRING));
-            put("Редактор", new PropModel("cm:modifier", PropModel.PropType.STRING));
             put("Заголовок", new PropModel("cm:title", PropModel.PropType.STRING));
 
             //Проверить, что тут все только общие
             put("На контроле", new PropModel("lecm-document-aspects:is-on-control", PropModel.PropType.BOOLEAN));
-            put("Статус", new PropModel("lecm-statemachine:status", PropModel.PropType.STRING));
             put("Гриф конфиденциальности", new PropModel("lecm-eds-aspect:security-classification-assoc", PropModel.PropType.ASSOC));
-            put("Комментарии ДДОиА", new PropModel("lecm-eds-ts:ddoia-comments-assoc", PropModel.PropType.ASSOC));
             put("Тип", new PropModel("lecm-document:doc-type", PropModel.PropType.STRING));
             put("Гриф конфиденциальности утвержден (СКХ). Служебное поле", new PropModel("lecm-eds-aspect:privacy-stamp-approved", PropModel.PropType.BOOLEAN));
             put("Строка представления для списка: Статус", new PropModel("lecm-document:list-present-string", PropModel.PropType.STRING));
             put("Краткое содержание", new PropModel("lecm-document:title", PropModel.PropType.STRING));
             put("Организация", new PropModel("lecm-orgstr-aspects:linked-organization-assoc", PropModel.PropType.ASSOC));
             put("Состояние подписания", new PropModel("lecm-signing-v2-aspects:signingState", PropModel.PropType.STRING));
-            put("Автор", new PropModel("lecm-document:author-assoc", PropModel.PropType.STRING));
             put("Дата", new PropModel("lecm-document:doc-date", PropModel.PropType.DATE));
             put("Регистрационный номер", new PropModel("lecm-document:regnum", PropModel.PropType.STRING));
             put("Зарегистрирован", new PropModel("lecm-document-aspects:reg-data-is-registered", PropModel.PropType.BOOLEAN));
-            put("История изменений", new PropModel("lecm-eds-ts:changes-history-assoc-ref", PropModel.PropType.ASSOC));
             put("Лишить текущего владельца прав на передаваемые документы", new PropModel("lecm-document:deprive-right", PropModel.PropType.BOOLEAN));
             put("Решение", new PropModel("lecm-routes-v2:decision", PropModel.PropType.STRING));
             put("Номер проекта", new PropModel("lecm-document-aspects:reg-project-data-number", PropModel.PropType.STRING));
@@ -45,23 +40,18 @@ public class PropsNames {
             put("Расширенная строка представления", new PropModel("lecm-document:ext-present-string", PropModel.PropType.STRING));
             put("Дата регистрации", new PropModel("lecm-document-aspects:reg-data-date", PropModel.PropType.DATE));
             put("Статус изменён", new PropModel("lecm-document:status-changed-date", PropModel.PropType.DATE));
-            put("Состояние исполнения", new PropModel("lecm-eds-aspect:execution-state", PropModel.PropType.STRING));
             put("Выполнение передачи прав при передаче документа", new PropModel("lecm-document:istransmit", PropModel.PropType.BOOLEAN));
             put("Категория документа", new PropModel("lecm-eds-aspect:document-category-assoc", PropModel.PropType.ASSOC));
             put("Количество листов", new PropModel("lecm-eds-aspect:sheets-number", PropModel.PropType.INT));
             put("Номер", new PropModel("lecm-document-aspects:reg-data-number", PropModel.PropType.STRING));
-            put("Регистратор", new PropModel("rn-document-aspects:potential-registrars-assoc", PropModel.PropType.ASSOC));
             put("Срочно", new PropModel("lecm-eds-aspect:is-urgent", PropModel.PropType.BOOLEAN));
             put("Вид документа", new PropModel("lecm-eds-document:document-type-assoc", PropModel.PropType.ASSOC));
-            put("Причины возврата", new PropModel("lecm-eds-ts:reasons-for-return-assoc", PropModel.PropType.ASSOC));
             put("Состояние ознакомления", new PropModel("lecm-review-ts:doc-review-state", PropModel.PropType.STRING));
             put("Разрешить редактирование владельца документа вручную", new PropModel("lecm-eds-aspect:change-eds-document-owner-manually", PropModel.PropType.BOOLEAN));
             put("Закрыть неисполненные подчиненные поручения", new PropModel("lecm-eds-aspect:completion-signal-close-child",PropModel.PropType.BOOLEAN));
             put("Инсайдерская информация", new PropModel("lecm-eds-aspect:inside-information",PropModel.PropType.BOOLEAN));
-            put("Предыдущий статус", new PropModel("lecm-eds-aspect:previous-status",PropModel.PropType.STRING));
             put("Просрочено", new PropModel("lecm-eds-document:is-expired",PropModel.PropType.STRING));
             put("Содержание", new PropModel("lecm-eds-document:summaryContent",PropModel.PropType.STRING));
-            put("Получатели", new PropModel("lecm-eds-document:recipients-assoc", PropModel.PropType.ASSOC));
             put("Примечание", new PropModel("lecm-eds-document:note", PropModel.PropType.STRING));
             put("Исполнитель", new PropModel("lecm-eds-document:executor-assoc", PropModel.PropType.ASSOC));
             put("Флаг необходимости перевода на регистрацию", new PropModel("lecm-eds-aspect:move-to-registration", PropModel.PropType.STRING));
@@ -75,8 +65,8 @@ public class PropsNames {
         //Исходящий
         put(DocType.OUTGOING, new HashMap<String, PropModel>() {
             {
+                put("Заголовок", new PropModel("lecm-document:title", PropModel.PropType.STRING));
                 put("Строка представления для списка", new PropModel("lecm-document:list-present-string", PropModel.PropType.STRING));
-                put("Способ доставк (служебное)", new PropModel("external-mailing-list:items-assoc-delivery-method-assoc", PropModel.PropType.ASSOC));
                 put("Флаг для отправки на подписание", new PropModel("lecm-outgoing:transit-to-signing", PropModel.PropType.BOOLEAN));
                 put("Корреспондент", new PropModel("lecm-outgoing:contractor-assoc", PropModel.PropType.ASSOC));
                 put("Подтверждать доставку", new PropModel("lecm-outgoing:confirm-delivery", PropModel.PropType.STRING));
@@ -111,17 +101,14 @@ public class PropsNames {
                 put("Сигнал об аннулировании - причина", new PropModel("lecm-resolutions:annul-signal-reason", PropModel.PropType.STRING));
                 put("Сигнал оn комплекта", new PropModel("lecm-resolutions:suite-signal", PropModel.PropType.STRING));
                 put("Автор (служебное)", new PropModel("lecm-resolutions:author-assoc", PropModel.PropType.ASSOC));
-                put("Контролер (служебное)", new PropModel("lecm-resolutions:controller-assoc", PropModel.PropType.ASSOC));
                 put("Основание (служебное)", new PropModel("lecm-resolutions:base-assoc", PropModel.PropType.STRING));
                 put("Документ-основание (служебное)", new PropModel("lecm-resolutions:base-document-assoc", PropModel.PropType.ASSOC));
-                put("Способ исполнения (служебное)", new PropModel("lecm-resolutions:completion-method-assoc", PropModel.PropType.ASSOC));
                 put("Срок исполнения - тип", new PropModel("lecm-resolutions:limitation-date-type", PropModel.PropType.STRING));
                 put("Срок исполнения", new PropModel("lecm-resolutions:limitation-date", PropModel.PropType.STRING));
                 put("Список поручений (служебное)", new PropModel("lecm-resolutions:errands-json", PropModel.PropType.STRING));
                 put("Имя атрибута документа основания для срока исполнения (служебное)", new PropModel("lecm-resolutions:base-doc-execution-date-attr-name", PropModel.PropType.STRING));
                 put("Основания для подготовки СЗ", new PropModel("lecm-resolutions:grounds-for-preparation-of-internal", PropModel.PropType.STRING));
                 put("Группа контроля (служебное)", new PropModel("lecm-resolutions:control-group-assoc", PropModel.PropType.ASSOC));
-                put("Контролеры пунктов", new PropModel("lecm-resolutions:items-assoc-controller-assoc-ref", PropModel.PropType.ASSOC));
                 put("Назначил (служебное)", new PropModel("lecm-resolutions:assigned-assoc", PropModel.PropType.ASSOC));
             }
         });
@@ -162,7 +149,6 @@ public class PropsNames {
                 put("Периодический отчет", new PropModel("lecm-errands:is-periodic-report",PropModel.PropType.BOOLEAN));
                 put("Контроль СВА", new PropModel("lecm-errands:is-control-SVA",PropModel.PropType.BOOLEAN));
                 put("часы", new PropModel("lecm-errands:child-index-counter",PropModel.PropType.INT));
-                put("Запросы", new PropModel("lecm-errands-ts:request-assoc",PropModel.PropType.ASSOC));
                 put("Статус отчета", new PropModel("lecm-errands:execution-report-status",PropModel.PropType.STRING));
                 put("Флаг для перехода на статус \"Исполнено\"", new PropModel("lecm-errands:transit-to-executed",PropModel.PropType.BOOLEAN));
                 put("Без утверждения Инициатором", new PropModel("lecm-errands:without-initiator-approval",PropModel.PropType.BOOLEAN));
@@ -174,7 +160,6 @@ public class PropsNames {
                 put("Исполнить точно в срок", new PropModel("lecm-errands:just-in-time",PropModel.PropType.BOOLEAN));
                 put("Служебный атрибут для всплытия событий", new PropModel("lecm-errands:event-counter",PropModel.PropType.BOOLEAN));
                 put("Флаг для перехода на статус \"На исполнении\"", new PropModel("lecm-errands:transit-to-on-execution",PropModel.PropType.BOOLEAN));
-                put("Отчёты соисполнителей", new PropModel("lecm-errands-ts:coexecutor-reports-assoc",PropModel.PropType.ASSOC));
                 put("График предоставления доклада", new PropModel("lecm-errands:periodic-report-date",PropModel.PropType.STRING));
                 put("Доступно исполнителю, подписанту и всем адресатам СЗ", new PropModel("lecm-errands:available-for-esr-of-internal",PropModel.PropType.BOOLEAN));
                 put("Направлять периодически", new PropModel("lecm-errands:periodically",PropModel.PropType.BOOLEAN));
@@ -245,10 +230,7 @@ public class PropsNames {
             {
                 put("Прорабатывать в", new PropModel("lecm-internal:elaborated-in",PropModel.PropType.STRING));
                 put("Получены все ответы", new PropModel("lecm-internal:all-answers-complete",PropModel.PropType.BOOLEAN));
-                put("Основания для подготовки СЗ", new PropModel("lecm-internal-table-structure:base-assoc",PropModel.PropType.ASSOC));
                 put("Основание для подготовки", new PropModel("lecm-internal:basis-from-create",PropModel.PropType.STRING));
-                put("Ответы", new PropModel("lecm-internal-table-structure:answers-assoc",PropModel.PropType.ASSOC));
-                put("Получатели", new PropModel("lecm-internal:recipients-assoc",PropModel.PropType.ASSOC));
                 put("Обоснование", new PropModel("lecm-internal_urgency-reason",PropModel.PropType.STRING));
                 put("Личный доклад", new PropModel("lecm-internal:personal-report", PropModel.PropType.BOOLEAN));
                 put("Перевести на исполнение", new PropModel("lecm-internal:transit-to-execution", PropModel.PropType.BOOLEAN));
@@ -256,7 +238,6 @@ public class PropsNames {
                 put("Руководитель-инициатор", new PropModel("lecm-internal:chief-initiator-assoc", PropModel.PropType.ASSOC));
                 put("Рассматривающий", new PropModel("lecm-internal:reviewer", PropModel.PropType.STRING));
                 put("Адресаты", new PropModel("lecm-internal:recipients-assoc", PropModel.PropType.ASSOC));
-                put("Данные о возврате с проработки", new PropModel("lecm-internal-table-structure:return-from-elaboration-assoc", PropModel.PropType.ASSOC));
                 put("Доступность добавления оснований для подготовки СЗ", new PropModel("lecm-internal:add-grounds-documents-available", PropModel.PropType.BOOLEAN));
                 put("Новый запрос", new PropModel("lecm-internal:new-query", PropModel.PropType.BOOLEAN));
                 put("Оперативно", new PropModel("lecm-internal:is-operatively", PropModel.PropType.BOOLEAN));
