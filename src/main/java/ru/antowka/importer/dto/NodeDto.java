@@ -21,7 +21,7 @@ public class NodeDto {
 
     private Map<String, String> assocs;
 
-    private List<Map<String, String>> attachmentData;
+    private List<AttachmentPathDto> attachmentData;
 
     private Map<String, String> approvalData;
 }
