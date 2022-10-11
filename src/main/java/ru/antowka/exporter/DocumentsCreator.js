@@ -11,6 +11,43 @@ var approvalData = {
     "Согласование": "workspace://SpacesStore/1305f18e-9f49-4f45-847b-a06c0939f07d,workspace://SpacesStore/26428d89-4636-4a20-8612-3ddb36db3cb8",
     "NOT_SPECIFIED": "workspace://SpacesStore/0aedfce1-24db-48a7-8c37-3965b5227f47,workspace://SpacesStore/1acbfd84-0c43-4d18-8fe9-e1b265e21553"
 };
+// Данные для 88
+var attachmentsData =
+    [{
+        "paths": [
+            {
+                "path": "c:\\alfresco-rn\\alf_data\\contentstore\\2022\\10\\6\\12\\39\\073d0ae8-9ea8-4972-b00c-84c6bf91a145.bin",
+                "type": "pdf"
+            },
+            {
+                "path": "c:\\alfresco-rn\\alf_data\\contentstore\\2022\\10\\6\\12\\39\\5132ef63-99b8-4114-8692-fcf2da7eef54.bin",
+                "type": "pdf"
+            },
+            {
+                "path": "c:\\alfresco-rn\\alf_data\\contentstore\\2022\\10\\6\\12\\39\\92c757f7-b88f-4717-9c73-6a49f3bf690f.bin",
+                "type": "pdf"
+            }],
+        "nameAttachment": "(A6)Печатная форма резолюции-П-00050-ИС-22-06.10.2022.pdf",
+        "category": "Зарегистрированный документ",
+        "initiator": "workspace://SpacesStore/75deee15-b9e7-4b62-81b7-9f2723a3b9ba"
+    },
+        {
+            "paths": [
+                {
+                    "path": "c:\\alfresco-rn\\alf_data\\contentstore\\2022\\10\\6\\11\\58\\7f0943bd-9143-49f4-8eeb-2f28deb2eef7.bin",
+                    "type": "pdf"
+                },
+                {
+                    "path": "c:\\alfresco-rn\\alf_data\\contentstore\\2022\\10\\6\\11\\58\\a5e34699-8412-4c23-91fc-50df65ec6f8b.bin",
+                    "type": "pdf"
+                }],
+            "nameAttachment": "Печатная форма комплекта.pdf",
+            "category": "Документы для рассмотрения",
+            "initiator": null
+        }
+    ]
+;
+
 
 //******************Тестовые данные для карточки согласования********************************
 /*var type = "rn-document-approval:document";
@@ -278,9 +315,10 @@ var dictionaryMapping = {
     "lecm-protocol:meeting-chairman-assoc": ["0", {"lecm-orgstr:employee": "lecm-orgstr:employee-short-name"}],
     "lecm-protocol:control-group-assoc": ["0", {"lecm-orgstr:workGroup": "lecm-orgstr:element-short-name"}],
     "lecm-protocol:secretary-assoc": ["0", {"lecm-orgstr:employee": "lecm-orgstr:employee-short-name"}],
-    "lecm-protocol:attended-assoc": ["0", {"lecm-orgstr:employee": "lecm-orgstr:employee-short-name"}]
+    "lecm-protocol:attended-assoc": ["0", {"lecm-orgstr:employee": "lecm-orgstr:employee-short-name"}],
+    "initiator": ["0", {"lecm-orgstr:employee": "lecm-orgstr:employee-short-name"}],
+    "category": [["Категория документа", "document-category:name"]]
 };
-
 
 /*var inputJSON = '';
  var inputObject = jsonUtils.toObject(inputJSON);
@@ -395,6 +433,56 @@ function createApprovalStageItems(stageType, iteration, approvers, props, itemPr
         stageItem = stage.createNode(null, 'lecmWorkflowRoutes:stageItem', itemProps);
         stageItem.createAssociation(approvers[k], 'lecmWorkflowRoutes:stageItemEmployeeAssoc');
         stageItem.addAspect("lecm-base-aspects:orderable");
+    }
+}
+
+function createAttachments(documentRef) {
+    document = search.findNode(documentRef);
+    var folder = document.childByNamePath("Вложения");
+    var categories = folder.getChildAssocsByType('lecm-document:attachmentsCategory');
+    for (var i = 0; i < attachmentsData.length; i++) {
+        logger.log("______________");
+        var name = attachmentsData[i].nameAttachment;
+        var categoryName = attachmentsData[i].category;
+        var initiatorRef = attachmentsData[i].initiator;
+        var paths = attachmentsData[i].paths;
+        var initiatorLogin = null;
+        var category = null;
+        var attachment = null;
+        for (var j = 0; j < categories.length; j++) {
+            if (categories[j].properties["cm:name"] == categoryName) {
+                category = categories[j];
+                logger.log(categories[j].properties["cm:name"]);
+            }
+        }
+        if (initiatorRef != null) {
+            logger.log(initiatorRef);
+            var initiator = search.findNode(initiatorRef);
+            if (initiator) {
+                initiatorLogin = orgstructure.getEmployeeLogin(initiator);
+            }
+        }
+        var nameLength = name.length-4;
+        for (var j = 0; j < paths.length; j++) {
+
+            name = name.substring(0, nameLength) + j + ".pdf";
+            //Распарисить пассы;
+            var a = "contentUrl=store:" + paths[j].substring((paths[j].indexOf("contentstore", 0) + 12))
+                + "|mimetype=application/pdf|size=" + new java.io.File(paths[j]).length().toString() + "|encoding=UTF-8|locale=ru_RU_";
+            arg = {
+                "cm:content": a
+            }
+            if (initiatorLogin && initiatorLogin) {
+                rnUtils.runAs(initiatorLogin, function () {
+                    attachment = category.createNode(name, 'cm:content', arg);
+                });
+            } else {
+                attachment = category.createNode(name, 'cm:content', arg);
+            }
+            if (attachment == null) {
+                logger.log("Вложений нет");
+            }
+        }
     }
 }
 
