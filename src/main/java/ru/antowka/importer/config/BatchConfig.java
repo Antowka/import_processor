@@ -1,6 +1,8 @@
 package ru.antowka.importer.config;
 
 import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
@@ -22,6 +24,7 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.scheduling.concurrent.ThreadPoolExecutorFactoryBean;
 import org.springframework.util.CollectionUtils;
 import ru.antowka.importer.mapper.NodeMapper;
 import ru.antowka.importer.model.DateFolderModel;
@@ -41,6 +44,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadFactory;
 import java.util.stream.Collectors;
 
 @Configuration
@@ -76,6 +81,9 @@ public class BatchConfig {
      */
     @Value("${html.file.read.limit.kb}")
     private int htmlFileReadLimitKb;
+
+    @Autowired
+    private ExecutorService taskWorker;
 
 
     public BatchConfig(@Value("${date.processing.date}") String startDateProcessing, @Value("${path.folder.output}") String outPathString) throws IOException {
@@ -169,7 +177,19 @@ public class BatchConfig {
             throw new IllegalArgumentException("Flow is empty, some problems with arguments (start date, end date) or path to contentStore");
         }
 
-        return flow.build();
+        return flow
+                .listener(new JobExecutionListener() {
+                    @Override
+                    public void beforeJob(JobExecution jobExecution) {
+
+                    }
+
+                    @Override
+                    public void afterJob(JobExecution jobExecution) {
+                        taskWorker.shutdownNow();
+                    }
+                })
+                .build();
     }
 
 
@@ -180,7 +200,8 @@ public class BatchConfig {
      */
     private Resource[] getFilesForProcessing(Path path) {
 
-        final Set<Path> allFoldersAndFilesFromSubFolders = FileUtils.getAllFilesFromSubFolders(path, "<h3><a href=\"http", htmlFileReadLimitKb);
+        final Set<Path> allFoldersAndFilesFromSubFolders = FileUtils
+                .getAllFilesFromSubFolders(path, "<h3><a href=\"http", htmlFileReadLimitKb);
 
         if (CollectionUtils.isEmpty(allFoldersAndFilesFromSubFolders)) {
             System.out.println("Folder doesn't exist or doesn't have html files with searchObj: " + path);
@@ -214,18 +235,19 @@ public class BatchConfig {
     public Step mainStep(String nameStep, final Resource[] filesForProcessing) {
         return stepBuilderFactory.get(nameStep)
                 //.listener(new StepResultListener())
-                .<NodeModel, NodeModel>chunk(2)
+                .<NodeModel, NodeModel>chunk(3)
                 .reader(multiResourceItemReader(filesForProcessing))
                 .faultTolerant()
                 .processor(compositeItemProcessor())
                 .writer(writer(Paths.get(outputFolder.toString(),  "result_" + nameStep + ".json")))
-                //.taskExecutor(taskExecutor())
+                .taskExecutor(taskExecutor())
+                .throttleLimit(3)
                 .build();
     }
 
     @Bean
     public TaskExecutor taskExecutor() {
-        return new SimpleAsyncTaskExecutor("spring_batch");
+        return new SimpleAsyncTaskExecutor("spring_batch_pool_");
     }
 
     @Bean

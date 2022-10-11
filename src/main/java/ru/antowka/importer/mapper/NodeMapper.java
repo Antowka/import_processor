@@ -7,20 +7,15 @@ import org.jsoup.select.Elements;
 import org.springframework.batch.item.file.LineMapper;
 import ru.antowka.importer.dictionary.DocType;
 import ru.antowka.importer.dictionary.PropsNames;
-import ru.antowka.importer.dto.NodeDto;
 import ru.antowka.importer.model.NodeModel;
 import ru.antowka.importer.model.PropModel;
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class NodeMapper implements LineMapper<NodeModel> {
-
-    private SimpleDateFormat inFormatter = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
-    private SimpleDateFormat outFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
 
     /**
      * Используется для Batch-a в reader-e
@@ -103,6 +98,9 @@ public class NodeMapper implements LineMapper<NodeModel> {
                     }
 
                     final PropModel propNameByPresentString = PropsNames.getPropNameByPresentString(docType, key);
+                    if (propNameByPresentString == null) {
+                        return null;
+                    }
 
                     if (PropModel.PropType.DATE.equals(propNameByPresentString.getType())) {
                         value = dateFormatter(value);
@@ -155,15 +153,14 @@ public class NodeMapper implements LineMapper<NodeModel> {
      */
     private String dateFormatter(String dateString) {
 
-        if (dateString.contains("LIMITLESS")) {
-            return dateString;
-        }
+        SimpleDateFormat inF = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
+        SimpleDateFormat outF = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
 
         try {
-            final Date date = inFormatter.parse(dateString);
-            dateString = outFormatter.format(date);
-        } catch (ParseException e) {
-            e.printStackTrace();
+            final Date date = inF.parse(dateString);
+            dateString = outF.format(date);
+        } catch (Exception e) {
+            System.out.println("Date string is wrong: " + dateString);
         }
 
         return dateString;

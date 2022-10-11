@@ -26,7 +26,7 @@ public class PropsNames {
             put("Краткое содержание", new PropModel("lecm-document:title", PropModel.PropType.STRING));
             put("Организация", new PropModel("lecm-orgstr-aspects:linked-organization-assoc", PropModel.PropType.ASSOC));
             put("Состояние подписания", new PropModel("lecm-signing-v2-aspects:signingState", PropModel.PropType.STRING));
-            put("Дата", new PropModel("lecm-document:doc-date", PropModel.PropType.DATE));
+            //put("Дата", new PropModel("lecm-document:doc-date", PropModel.PropType.DATE));
             put("Регистрационный номер", new PropModel("lecm-document:regnum", PropModel.PropType.STRING));
             put("Зарегистрирован", new PropModel("lecm-document-aspects:reg-data-is-registered", PropModel.PropType.BOOLEAN));
             put("Лишить текущего владельца прав на передаваемые документы", new PropModel("lecm-document:deprive-right", PropModel.PropType.BOOLEAN));
@@ -292,7 +292,7 @@ public class PropsNames {
         }
 
         if (Objects.isNull(propModelByDocType)) {
-            return new PropModel(presentString, PropModel.PropType.FAIL);
+            return null;
         }
 
         return propModelByDocType;
