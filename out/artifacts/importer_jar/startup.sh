@@ -1,6 +1,6 @@
 #!/bin/bash
 java -jar importer.jar --date.processing.date=04.10.2022 \
-                                      --path.file.output=e:\\temp\\ \
+                                      --path.folder.output=e:\\temp\\ \
                                       --path.to.contentstore=e:\\Alfresco\\Project\\alf_data\\contentstore\\ \
                                       --spring.datasource.notification.url=jdbc:postgresql://172.19.203.16:5432/notificationstore \
                                       --spring.datasource.notification.username=alfresco \
