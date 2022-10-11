@@ -462,9 +462,11 @@ function createAttachments(documentRef) {
                 initiatorLogin = orgstructure.getEmployeeLogin(initiator);
             }
         }
+        var nameLength = name.length-4;
         for (var j = 0; j < paths.length; j++) {
+
+            name = name.substring(0, nameLength) + j + ".pdf";
             //Распарисить пассы;
-            paths[j].substring((paths[j].indexOf("contentstore", 0) + 12))
             var a = "contentUrl=store:" + paths[j].substring((paths[j].indexOf("contentstore", 0) + 12))
                 + "|mimetype=application/pdf|size=" + new java.io.File(paths[j]).length().toString() + "|encoding=UTF-8|locale=ru_RU_";
             arg = {
