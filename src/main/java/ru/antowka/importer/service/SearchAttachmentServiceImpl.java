@@ -59,15 +59,15 @@ public class SearchAttachmentServiceImpl implements SearchAttachmentService {
                     attachment.setCategory(record.substring(record.indexOf("в категорию") + 13, record.length() - 1));
                 }
                 attachment.setInitiator(bj.getInitiator());
-                String path1 = pathToContentStore + (bj.getDate().toString().substring(0, 4)) + "/" +
-                        Integer.valueOf(bj.getDate().toString().substring(5, 7)) + "/"
-                        + Integer.valueOf(bj.getDate().toString().substring(8, 10)) + "/"
-                        + Integer.valueOf(bj.getDate().toString().substring(11, 13)) + "/"
+                String path1 = pathToContentStore + (bj.getDate().toString().substring(0, 4)) + File.pathSeparator +
+                        Integer.valueOf(bj.getDate().toString().substring(5, 7)) + File.pathSeparator
+                        + Integer.valueOf(bj.getDate().toString().substring(8, 10)) + File.pathSeparator
+                        + Integer.valueOf(bj.getDate().toString().substring(11, 13)) + File.pathSeparator
                         + Integer.valueOf(bj.getDate().toString().substring(14, 16));
-                String path2 = pathToContentStore + (bj.getDate().toString().substring(0, 4)) + "/" +
-                        Integer.valueOf(bj.getDate().toString().substring(5, 7)) + "/"
-                        + Integer.valueOf(bj.getDate().toString().substring(8, 10)) + "/"
-                        + Integer.valueOf(bj.getDate().toString().substring(11, 13)) + "/"
+                String path2 = pathToContentStore + (bj.getDate().toString().substring(0, 4)) + File.pathSeparator +
+                        Integer.valueOf(bj.getDate().toString().substring(5, 7)) + File.pathSeparator
+                        + Integer.valueOf(bj.getDate().toString().substring(8, 10)) + File.pathSeparator
+                        + Integer.valueOf(bj.getDate().toString().substring(11, 13)) + File.pathSeparator
                         + (Integer.valueOf(bj.getDate().toString().substring(14, 16)) + 1);
                 File dir1 = new File(path1);
                 File dir2 = new File(path2);
