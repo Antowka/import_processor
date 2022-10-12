@@ -11,7 +11,7 @@ var approvalData = {
     "Согласование": "workspace://SpacesStore/1305f18e-9f49-4f45-847b-a06c0939f07d,workspace://SpacesStore/26428d89-4636-4a20-8612-3ddb36db3cb8",
     "NOT_SPECIFIED": "workspace://SpacesStore/0aedfce1-24db-48a7-8c37-3965b5227f47,workspace://SpacesStore/1acbfd84-0c43-4d18-8fe9-e1b265e21553"
 };
-// Данные для 88
+
 var attachmentsData =
     [{
         "paths": [
@@ -441,7 +441,6 @@ function createAttachments(documentRef) {
     var folder = document.childByNamePath("Вложения");
     var categories = folder.getChildAssocsByType('lecm-document:attachmentsCategory');
     for (var i = 0; i < attachmentsData.length; i++) {
-        logger.log("______________");
         var name = attachmentsData[i].nameAttachment;
         var categoryName = attachmentsData[i].category;
         var initiatorRef = attachmentsData[i].initiator;
@@ -452,22 +451,20 @@ function createAttachments(documentRef) {
         for (var j = 0; j < categories.length; j++) {
             if (categories[j].properties["cm:name"] == categoryName) {
                 category = categories[j];
-                logger.log(categories[j].properties["cm:name"]);
             }
         }
         if (initiatorRef != null) {
-            logger.log(initiatorRef);
             var initiator = search.findNode(initiatorRef);
             if (initiator) {
                 initiatorLogin = orgstructure.getEmployeeLogin(initiator);
             }
         }
-        var nameLength = name.length-4;
+        var nameLength = name.length - 4;
         for (var j = 0; j < paths.length; j++) {
 
             name = name.substring(0, nameLength) + j + ".pdf";
             //Распарисить пассы;
-            var a = "contentUrl=store:" + paths[j].substring((paths[j].indexOf("contentstore", 0) + 12))
+            var a = "contentUrl=store:/" + paths[j].substring((paths[j].indexOf("contentstore", 0) + 12))
                 + "|mimetype=application/pdf|size=" + new java.io.File(paths[j]).length().toString() + "|encoding=UTF-8|locale=ru_RU_";
             arg = {
                 "cm:content": a
