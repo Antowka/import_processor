@@ -122,7 +122,7 @@ public class PropsNames {
                 put("Требуется отчет", new PropModel("lecm-errands-dic:errand-type-report-required", PropModel.PropType.BOOLEAN));
                 put("Флаг для отключения действий на статусе", new PropModel("lecm-errands:hold-on-project", PropModel.PropType.BOOLEAN));
                 put("Уведомлять Автора", new PropModel("lecm-errands:author-notification", PropModel.PropType.BOOLEAN));
-                put("Документ-основание", new PropModel("lecm-errands:base-document-assoc", PropModel.PropType.ASSOC));
+                put("Документ-основание", new PropModel("lecm-errands:base-assoc", PropModel.PropType.ASSOC));
                 put("Заголовок документа-основания", new PropModel("lecm-errands:base-document-content", PropModel.PropType.STRING));
                 put("Групповое поручение", new PropModel("lecm-errands:is-group", PropModel.PropType.BOOLEAN));
                 put("Тип поручения", new PropModel("lecm-errands:type-assoc", PropModel.PropType.ASSOC));
