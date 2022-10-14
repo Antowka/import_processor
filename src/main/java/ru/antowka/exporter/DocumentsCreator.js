@@ -1,254 +1,6 @@
-var ctx = Packages.org.springframework.web.context.ContextLoader.getCurrentWebApplicationContext();
-var behaviourFilter = ctx.getBean('policyBehaviourFilter', ctx.getClass().getClassLoader().loadClass('org.alfresco.repo.policy.BehaviourFilter'));
-
-
 //TODO прикрутить локальный кэш
-//TODO сделать работ со адресантами (проблема в том, что в SO - ФИО, а справчонике все разбито на атрибуты): подписанты ВхД, адресанты ИсхД, исполнителт поручений
 
-//------------Тестовые данные--------------//
-
-var approvalData = {
-    "Согласование": "workspace://SpacesStore/1305f18e-9f49-4f45-847b-a06c0939f07d,workspace://SpacesStore/26428d89-4636-4a20-8612-3ddb36db3cb8",
-    "NOT_SPECIFIED": "workspace://SpacesStore/0aedfce1-24db-48a7-8c37-3965b5227f47,workspace://SpacesStore/1acbfd84-0c43-4d18-8fe9-e1b265e21553"
-};
-
-var attachmentsData =
-    [{
-        "paths": [
-            {
-                "path": "c:\\alfresco-rn\\alf_data\\contentstore\\2022\\10\\6\\12\\39\\073d0ae8-9ea8-4972-b00c-84c6bf91a145.bin",
-                "type": "pdf"
-            },
-            {
-                "path": "c:\\alfresco-rn\\alf_data\\contentstore\\2022\\10\\6\\12\\39\\5132ef63-99b8-4114-8692-fcf2da7eef54.bin",
-                "type": "pdf"
-            },
-            {
-                "path": "c:\\alfresco-rn\\alf_data\\contentstore\\2022\\10\\6\\12\\39\\92c757f7-b88f-4717-9c73-6a49f3bf690f.bin",
-                "type": "pdf"
-            }],
-        "nameAttachment": "(A6)Печатная форма резолюции-П-00050-ИС-22-06.10.2022.pdf",
-        "category": "Зарегистрированный документ",
-        "initiator": "workspace://SpacesStore/75deee15-b9e7-4b62-81b7-9f2723a3b9ba"
-    },
-        {
-            "paths": [
-                {
-                    "path": "c:\\alfresco-rn\\alf_data\\contentstore\\2022\\10\\6\\11\\58\\7f0943bd-9143-49f4-8eeb-2f28deb2eef7.bin",
-                    "type": "pdf"
-                },
-                {
-                    "path": "c:\\alfresco-rn\\alf_data\\contentstore\\2022\\10\\6\\11\\58\\a5e34699-8412-4c23-91fc-50df65ec6f8b.bin",
-                    "type": "pdf"
-                }],
-            "nameAttachment": "Печатная форма комплекта.pdf",
-            "category": "Документы для рассмотрения",
-            "initiator": null
-        }
-    ]
-;
-
-
-//******************Тестовые данные для карточки согласования********************************
-/*var type = "rn-document-approval:document";
- var nodeRef = "workspace://SpacesStore/f6414768-decc-4d64-85b4-d341c52525a6";
-
-
- var props = {
- "cm:creator": "delopr1",
- "cm:created": "2022-10-07T11:40:09+00:00",
- "lecm-document:title": "Тест",
- "lecm-document-aspects:reg-project-data-number": "У-05148-22",
- "cm:name": "Акт, №У-05148-22 от 07.10.2022 f6414768-decc-4d64-85b4-d341c52525a6"
- };
-
- var assocs = {
- "lecm-eds-aspect:document-category-assoc": "Открытый",
- "lecm-eds-document:executor-assoc": "Administrator A.A.",
- "rn-document-approval:curators-assoc": "Усманов Р.У.",
- "lecm-orgstr-aspects:linked-organization-assoc": "ПАО «НК «Роснефть»",
- "rn-document-approval:document-kind-assoc": "Акт"
- };*/
-
-//******************Тестовые данные для ИсхД********************************
-
-/*var type = "lecm-outgoing:document";
- var nodeRef = "workspace://SpacesStore/f6414768-decc-4d64-85b4-d341c52525a7";
-
- var props = {
- "cm:creator": "delopr1",
- "cm:created": "2022-10-07T11:40:09+00:00",
- "lecm-document:title": "Тест Исходящий",
- "lecm-document-aspects:reg-project-data-number": "У-05000-22",
- "lecm-signing-v2-aspects:signed-on-paper": "true",
- "lecm-eds-document:execution-date": "2022-11-09T11:40:09+00:00",
- "lecm-document:regnum": "123-00091-123"
- };
-
- var assocs = {
- "lecm-eds-aspect:document-category-assoc": "Открытый",
- "lecm-eds-document:document-type-assoc": "Запрос",
- "lecm-orgstr-aspects:linked-organization-assoc": "ПАО «НК «Роснефть»",
- "lecm-signing-v2-aspects:signerEmployeeAssoc": "Administrator A.A.;Анищенко И.П.",
- "lecm-outgoing:contractor-assoc": "Google;АО \"СНПЗ\";Герасимов О.",
- "lecm-outgoing:chief-initiator-assoc": "Анищенко И.П."
- };*/
-
-//******************Тестовые данные для резолюции********************************
-/*var type = "lecm-resolutions:document";
- var nodeRef = "workspace://SpacesStore/f6414768-decc-4d64-85b4-d341c52525a7";
-
- var props = {
- "cm:creator": "delopr1",
- "cm:created": "2022-10-07T11:40:09+00:00",
- "lecm-document:title": "Тест резолюции",
- "lecm-document-aspects:reg-project-data-number": "У-05000-22",
- "lecm-signing-v2-aspects:signed-on-paper": "false",
- "lecm-eds-document:execution-date": "2022-11-09T11:40:09+00:00",
- "lecm-document:regnum": "123-00091-123",
- "lecm-resolutions:title": "Тестовый заголовок резолюции"
- };
-
- var assocs = {
- "lecm-eds-aspect:document-category-assoc": "Открытый",
- "lecm-orgstr-aspects:linked-organization-assoc": "ПАО «НК «Роснефть»",
- "lecm-resolutions:author-assoc": "Сечин И.И.",
- "lecm-resolutions:base-assoc": "Служебная записка на Главного исполнительного директора № СЗ-AA-01401-22 от 06.10.2022",
- "lecm-resolutions:base-document-assoc": "Служебная записка на Главного исполнительного директора № СЗ-AA-01401-22 от 06.10.2022",
- "lecm-resolutions:control-group-assoc": "Группа контроля АК",
- "lecm-eds-aspect:security-classification-assoc": "Общее"
- };*/
-
-/******************Тестовые данные для поручения************************/
-/*
- var type = "lecm-errands:document";
- var nodeRef = "workspace://SpacesStore/f6414768-decc-4d64-85b4-d341c52525a7";
-
- var props = {
- "cm:creator": "delopr1",
- "cm:created": "2022-10-07T11:40:09+00:00",
- "lecm-document:title": "Тест Поручения",
- "lecm-document-aspects:reg-project-data-number": "У-05000-22",
- "lecm-signing-v2-aspects:signed-on-paper": "true",
- "lecm-eds-document:execution-date": "2022-11-09T11:40:09+00:00",
- "lecm-document:regnum": "123-00091-123"
- };
-
- var assocs = {
- "lecm-eds-aspect:document-category-assoc": "Открытый",
- "lecm-orgstr-aspects:linked-organization-assoc": "ПАО «НК «Роснефть»",
- "lecm-errands:initiator-assoc": "Administrator A.A.",
- "lecm-resolutions:author-assoc": "Сечин И.И.",
- "lecm-errands:controller-assoc": "Мигунова Л.В.",
- "lecm-errands:complex-executor-assoc": "Анищенко И.П.",
- "lecm-errands:complex-coexecutors": "Усманов Р.У.",
- "lecm-errands:for-information-assoc": "Соколова М.В."
- };*/
-
-
-//*********************Служебки**********************//
-/*var type = "lecm-internal:document";
- var nodeRef = "workspace://SpacesStore/f6414768-decc-4d64-85b4-d341c52525a6";
-
- var props = {
- "lecm-document:regnum": "123-00091-123",
- "cm:creator": "delopr1",
- "cm:created": "2022-10-07T11:40:09+00:00",
- "lecm-document:title": "Тест СЗ",
- "lecm-document-aspects:reg-project-data-number": "У-05148-22",
- "cm:name": "Акт, №У-05148-22 от 07.10.2022 f6414768-decc-4d64-85b4-d341c52525a6",
- "lecm-eds-document:summaryContent":"Содержание СЗ"
- };
-
-
- var assocs = {
- "lecm-orgstr-aspects:linked-organization-assoc": "ПАО «НК «Роснефть»",
- "lecm-eds-aspect:document-category-assoc": "Открытый",
- "lecm-eds-document:executor-assoc": "Соколова М.В.",
- "lecm-signing-v2-aspects:signerEmployeeAssoc": "Administrator A.A.;Анищенко И.П.",
- "lecm-eds-aspect:eds-document-owner-assoc": "Анищенко И.П.",
- "lecm-internal:recipients-assoc": "Анищенко И.П.;ПАО «НК «Роснефть»",
- "lecm-eds-document:document-type-assoc":"Служебная записка",
- "lecm-internal:copies-assoc":"Аверченко М.А."
- };*/
-
-
-//*************************Входящие*********************************
-/*var type = "lecm-incoming:document";
- var nodeRef = "workspace://SpacesStore/f6414768-decc-4d64-85b4-d341c52525a6";
-
- var props = {
- "lecm-document:regnum": "123-00091-123",
- "cm:creator": "delopr1",
- "cm:created": "2022-10-07T11:40:09+00:00",
- "lecm-document:title": "Тест ВхД",
- "lecm-document-aspects:reg-project-data-number": "У-05148-22",
- "cm:name": "Акт, №У-05148-22 от 07.10.2022 f6414768-decc-4d64-85b4-d341c52525a6"
- };
-
-
- var assocs = {
- "lecm-orgstr-aspects:linked-organization-assoc": "ПАО «НК «Роснефть»",
- "lecm-eds-aspect:document-category-assoc": "Открытый",
- "lecm-eds-document:document-type-assoc": "Письмо",
- "lecm-eds-aspect:eds-document-owner-assoc": "Анищенко И.П.",
- "lecm-incoming:recipient-assoc": "Анищенко И.П.;ПАО «НК «Роснефть»;Сотрудники РН-Аэро",
- "lecm-incoming:sender-assoc": "ООО «РН-Туапсинский НПЗ»",
- "lecm-incoming:delivery-method-assoc": "E-mail"
- };*/
-
-
-//*************************Протокол*********************************
-var type = "lecm-protocol:document";
-var nodeRef = "workspace://SpacesStore/f6414768-decc-4d64-85b4-d341c52525a6";
-
-var props = {
-    "lecm-document:regnum": "123-00091-123",
-    "cm:creator": "delopr1",
-    "cm:created": "2022-10-07T11:40:09+00:00",
-    "lecm-document:title": "Тест Протокола",
-    "cm:name": "Акт, №У-05148-22 от 07.10.2022 f6414768-decc-4d64-85b4-d341c52525a6"
-};
-
-var assocs = {
-    "lecm-orgstr-aspects:linked-organization-assoc": "ПАО «НК «Роснефть»",
-    "lecm-eds-aspect:document-category-assoc": "Открытый",
-    "lecm-eds-aspect:eds-document-owner-assoc": "Анищенко И.П.",
-    "lecm-signing-v2-aspects:signerEmployeeAssoc": "Анищенко И.П.",
-    "lecm-eds-document:document-type-assoc": "Протокол. Подписание ЭП",
-    "lecm-protocol:category-assoc": "Внеплановое",
-    "lecm-protocol:control-group-assoc": "Группа контроля АК",
-    "lecm-protocol:meeting-chairman-assoc": "Сечин И.И.",
-    "lecm-protocol:secretary-assoc": "Усманов Р.У.",
-    "lecm-protocol:attended-assoc": "Мигунова Л.В."
-};
-
-
-//*************************РД*********************************
-/*var type = "lecm-ord:document";
- var nodeRef = "workspace://SpacesStore/f6414768-decc-4d64-85b4-d341c52525a6";
-
- var props = {
- "lecm-document:regnum": "123-00091-123",
- "cm:creator": "delopr1",
- "cm:created": "2022-10-07T11:40:09+00:00",
- "lecm-document:title": "Тест РД",
- "cm:name": "Акт, №У-05148-22 от 07.10.2022 f6414768-decc-4d64-85b4-d341c52525a6",
- "lecm-eds-document:summaryContent": "преамбула РД"
- };
-
-
- var assocs = {
- "lecm-orgstr-aspects:linked-organization-assoc": "ПАО «НК «Роснефть»",
- "lecm-eds-aspect:document-category-assoc": "Открытый",
- "lecm-eds-aspect:eds-document-owner-assoc": "Анищенко И.П.",
- "lecm-signing-v2-aspects:signerEmployeeAssoc": "Анищенко И.П.",
- "lecm-eds-document:document-type-assoc": "Приказ",
- "lecm-eds-document:executor-assoc": "Анищенко И.П.",
- "lecm-ord:curators-assoc": "Усманов Р.У.",
- "lecm-ord:controller-assoc":"Мигунова Л.В."
- };*/
-
+var date_regex = /^([\+-]?\d{4}(?!\d{2}\b))((-?)((0[1-9]|1[0-2])(\3([12]\d|0[1-9]|3[01]))?|W([0-4]\d|5[0-2])(-?[1-7])?|(00[1-9]|0[1-9]\d|[12]\d{2}|3([0-5]\d|6[1-6])))([T\s]((([01]\d|2[0-3])((:?)[0-5]\d)?|24\:?00)([\.,]\d+(?!:))?)?(\17[0-5]\d([\.,]\d+)?)?([zZ]|([\+-])([01]\d|2[0-3]):?([0-5]\d)?)?)?)?$/;
 
 //Мапинг асок, получаемых их Search Object на справочник и атриубут для поиска элемента справочника
 var dictionaryMapping = {
@@ -265,25 +17,35 @@ var dictionaryMapping = {
         "Физические лица": "lecm-contractor:shortname",
         "Контрагенты": "lecm-contractor:shortname"
     }],
+
+    "lecm-outgoing:recipient-assoc": ["0", {"lecm-representative:representative-type": "lecm-representative:surname,lecm-representative:firstname,lecm-representative:middlename"}],
+    "lecm-incoming:addressee-assoc": ["0", {"lecm-representative:representative-type": "lecm-representative:surname,lecm-representative:firstname,lecm-representative:middlename"}],
+    "lecm-incoming:document-signer-assoc": ["0", {"lecm-representative:representative-type": "lecm-representative:surname,lecm-representative:firstname,lecm-representative:middlename"}],
     "lecm-resolutions:author-assoc": ["0", {"lecm-orgstr:employee": "lecm-orgstr:employee-short-name"}],
-    "lecm-resolutions:base-assoc": ["0", {"lecm-document:base": "lecm-document:present-string"}],
-    "lecm-resolutions:base-document-assoc": ["0", {"lecm-document:base": "lecm-document:present-string"}],
+    //"lecm-resolutions:base-assoc": ["0", {"lecm-document:base": "lecm-document:present-string"}],
+    //"lecm-resolutions:base-document-assoc": ["0", {"lecm-document:base": "lecm-document:present-string"}],
     "lecm-resolutions:control-group-assoc": ["0", {"lecm-orgstr:workGroup": "lecm-orgstr:element-short-name"}],
+    "lecm-errands:control-group-assoc": ["0", {"lecm-orgstr:workGroup": "lecm-orgstr:element-short-name"}],
+    "lecm-errands-aspect:errands-executors-assoc": ["0", {"lecm-orgstr:employee": "lecm-orgstr:employee-short-name"}],
+    "lecm-resolutions:assigned-assoc": ["0", {"lecm-orgstr:employee": "lecm-orgstr:employee-short-name"}],
     "lecm-eds-aspect:security-classification-assoc": ["Грифы секретности", "cm:title"],
     "lecm-outgoing:chief-initiator-assoc": ["0", {"lecm-orgstr:employee": "lecm-orgstr:employee-short-name"}],
+    "lecm-errands:category-assoc": ["Категории поручений", "cm:name"],
     "lecm-errands:initiator-assoc": ["0", {"lecm-orgstr:employee": "lecm-orgstr:employee-short-name"}],
     "lecm-errands:controller-assoc": ["0", {"lecm-orgstr:employee": "lecm-orgstr:employee-short-name"}],
+    //"lecm-errands:base-document-assoc": ["0", {"lecm-document:base": "lecm-document:present-string"}],
+    "lecm-errands:additional-document-assoc": ["0", {"lecm-document:base": "lecm-document:present-string"}],
     "lecm-errands:complex-executor-assoc": ["0", {
         "lecm-orgstr:employee": "lecm-orgstr:employee-short-name",
         "lecm-orgstr:organization-unit": "lecm-orgstr:element-short-name",
         "lecm-orgstr:workGroup": "lecm-orgstr:element-short-name"
     }],
-    "lecm-errands:complex-coexecutors": ["0", {
+    "lecm-errands:complex-coexecutors-assoc": ["0", {
         "lecm-orgstr:employee": "lecm-orgstr:employee-short-name",
         "lecm-orgstr:organization-unit": "lecm-orgstr:element-short-name",
         "lecm-orgstr:workGroup": "lecm-orgstr:element-short-name"
     }],
-    "lecm-errands:for-information-assoc": ["0", {
+    "lecm-errands:complex-for-info-assoc": ["0", {
         "lecm-orgstr:employee": "lecm-orgstr:employee-short-name",
         "lecm-orgstr:organization-unit": "lecm-orgstr:element-short-name",
         "lecm-orgstr:workGroup": "lecm-orgstr:element-short-name"
@@ -296,12 +58,17 @@ var dictionaryMapping = {
         "lecm-orgstr:employee": "lecm-orgstr:employee-short-name",
         "lecm-orgstr:organization-unit": "lecm-orgstr:element-short-name"
     }],
+    "lecm-eds-document:recipients-assoc": ["0", {
+        "lecm-orgstr:employee": "lecm-orgstr:employee-short-name",
+        "lecm-orgstr:organization-unit": "lecm-orgstr:element-short-name"
+    }],
     "lecm-internal:copies-assoc": ["0", {"lecm-orgstr:employee": "lecm-orgstr:employee-short-name"}],
     "lecm-incoming:recipient-assoc": ["0", {
         "lecm-orgstr:employee": "lecm-orgstr:employee-short-name",
         "lecm-orgstr:organization-unit": "lecm-orgstr:element-short-name",
         "lecm-orgstr:workGroup": "lecm-orgstr:element-short-name"
     }],
+    "lecm-internal:chief-initiator-assoc": ["0", {"lecm-orgstr:employee": "lecm-orgstr:employee-short-name"}],
     "lecm-incoming:sender-assoc": [{
         "Физические лица": "lecm-contractor:shortname",
         "Контрагенты": "lecm-contractor:shortname"
@@ -316,63 +83,164 @@ var dictionaryMapping = {
     "lecm-protocol:control-group-assoc": ["0", {"lecm-orgstr:workGroup": "lecm-orgstr:element-short-name"}],
     "lecm-protocol:secretary-assoc": ["0", {"lecm-orgstr:employee": "lecm-orgstr:employee-short-name"}],
     "lecm-protocol:attended-assoc": ["0", {"lecm-orgstr:employee": "lecm-orgstr:employee-short-name"}],
-    "initiator": ["0", {"lecm-orgstr:employee": "lecm-orgstr:employee-short-name"}],
-    "category": [["Категория документа", "document-category:name"]]
+    "lecm-errands:character-assoc": ["0", {"lecm-errands-dic:errand-character": "cm:name"}],
+    "lecm-eds-aspect:eds-document-org-unit-owner-assoc": ["0", {"lecm-orgstr:organization-unit": "lecm-orgstr:element-short-name"}],
+    "lecm-errands:type-assoc": ["0", {"lecm-errands-dic:errand-type": "cm:name"}]
 };
 
-/*var inputJSON = '';
- var inputObject = jsonUtils.toObject(inputJSON);
- Object.keys(inputObject).forEach(function (obj) {
- var props = obj.props;
- var assocs = obj.assocs;
- });*/
+//Если true, то не создаем доки, только читаем файл и пробуем искать асоки
+var dryRun = false;
 
-var q = java.lang.System.getProperty("user.dir");
-logger.log(q);
+//если true - то пытаемся создать вложения у существующих доков
+var tryToCreateAttachments = false;
 
-var existDocument = search.findNode(nodeRef);
-if (existDocument) {
-    logger.log("Document with ref " + nodeRef + " already exist");
-} else {
-    rnUtils.runAs(props["cm:creator"], function () {
-        //получим sys:node-uuid
-        var sysNodeUuid = nodeRef.split("SpacesStore/");
-        props["sys:node-uuid"] = sysNodeUuid[1];
+var version = "DocumentsCreator.js version 11";
 
-        var root = documentScript.getDraftRoot(type);
-        var document = root.createNode(props["cm:name"], type, props);
 
-        //отдельно сохраняем регномер, чтобы выдать его после того как док будет зареган
-        if (props["lecm-document:regnum"]) {
-            document.properties["lecm-eds-aspect:regnum-after-script-create-doc"] = props["lecm-document:regnum"];
-        }
-        document.properties["lecm-eds-aspect:importer-code"] = "lb";
-        document.save();
-
-        //асоки
-        if (Object.keys(assocs).length) {
-            for (var assocName in assocs) {
-                //values - текстовые представления асок. Нужно превести их в объекты
-                var values = assocs[assocName].split(";");
-                if (values && values.length) {
-                    values.forEach(function (textValue) {
-                        //находим значение в соответствующем справочнике
-                        var value = getValue(assocName, textValue);
-                        if (value) {
-                            document.createAssociation(value, assocName);
-                        }
-                    });
-                }
-            }
-        }
-
-        //согласование
-        createApprovalRoute(document);
-    });
+try {
+    logger.error("OG2. Begin " + version);
+    //var document - вложение, передаваемое из js консоли
+    var inputObject = JSON.parse(document.content);
+} catch (e) {
+    logger.error("OG2. Error in read json file ." + e);
 }
 
+run();
 
-function createApprovalRoute(document) {
+
+function run() {
+    for (var i = 0; i < inputObject.length; i++) {
+        var type = inputObject[i].type;
+        var nodeRef = inputObject[i].nodeRef;
+        var props = inputObject[i].props;
+        var assocs = inputObject[i].assocs;
+        var approvalData = inputObject[i].approvalData;
+        var attachmentsData = attachmentsData[i].approvalData;
+
+        var existDocument = search.findNode(nodeRef);
+        if (existDocument) {
+            logger.error("OG2. Document with ref " + nodeRef + " already exist");
+            if (tryToCreateAttachments) {
+                logger.error("OG2. Try to create attachments for document with ref " + nodeRef);
+                createAttachments(existDocument, attachmentsData);
+            }
+        } else {
+            rnUtils.doInTransaction(function () {
+                rnUtils.runAs(props["cm:creator"], function () {
+                    try {
+                        logger.error("OG2. Try to create " + nodeRef);
+                        //получим sys:node-uuid
+                        var sysNodeUuid = nodeRef.split("SpacesStore/");
+                        props["sys:node-uuid"] = sysNodeUuid[1];
+
+                        var root = documentScript.getDraftRoot(type);
+
+                        if (!dryRun) {
+                            if ("lecm-errands:document" != type) {
+                                var newDocument = root.createNode(props["cm:name"] + new Date().getTime(), type, props);
+                            } else {
+                                //для поручений надо сразу создавать док с асоками
+                                //способ записи для асок assoc_lecm-errands_category-assoc
+                                //способ записи для пропери prop_lecm-errands_is-external-control
+                                var errand = {};
+
+                                for (var propName in props) {
+                                    switch (propName) {
+                                        case "cm:name":
+                                            errand["prop_" + propName.replace(":", "_")] = props[propName] + new Date().getTime();
+                                            break;
+                                        case "lecm-errands:limitation-date":
+                                            //в атрибуте lecm-errands:limitation-date может храниться как дата, так как и текст и массив
+                                            if (date_regex.test(props[propName])) {
+                                                errand["prop_" + propName.replace(":", "_")] = props[propName];
+                                            }
+                                            break;
+                                        default:
+                                            errand["prop_" + propName.replace(":", "_")] = props[propName];
+                                            break;
+                                    }
+                                }
+
+                                errand["prop_lecm-eds-aspect_importer-code"] = "lb";
+
+                                if (props["lecm-document:regnum"]) {
+                                    errand["prop_lecm-eds-aspect_regnum-after-script-create-doc"] = props["lecm-document:regnum"];
+                                }
+
+                                for (var assocName in assocs) {
+                                    //values - текстовые представления асок. Нужно превести их в объекты
+                                    var values = assocs[assocName].split(";");
+                                    if (values && values.length) {
+                                        values.forEach(function (textValue) {
+                                            //находим значение в соответствующем справочнике
+                                            var value = getValue(assocName, textValue);
+                                            if (value) {
+                                                errand["assoc_" + assocName.replace(":", "_")] = value.nodeRef + "";
+                                                //на момент 12.10.2022 неправильно мапится атрибут
+                                                //нужно lecm-errands:base-assoc, а в json lecm-errands:base-document-assoc
+                                                //чтобы не пределывать json пока сделаем подмену
+                                                if (assocName == "lecm-errands:base-document-assoc") {
+                                                    errand["assoc_lecm-errands_base-assoc"] = value.nodeRef + "";
+                                                }
+                                            } else {
+                                                logger.error("OG2. For assocName " + assocName + " and value " + textValue + " item not found. Document with ref " + nodeRef);
+                                            }
+                                        });
+                                    }
+                                }
+
+                                var newDocument = errands.createErrandsSync(errand);
+                            }
+
+                            if ("lecm-errands:document" != type) {
+                                //отдельно сохраняем регномер, чтобы выдать его после того как док будет зареган
+                                if (props["lecm-document:regnum"]) {
+                                    newDocument.properties["lecm-eds-aspect:regnum-after-script-create-doc"] = props["lecm-document:regnum"];
+                                }
+                                newDocument.properties["lecm-eds-aspect:importer-code"] = "lb";
+                                newDocument.save();
+                            }
+                        }
+
+                        //асоки
+                        if (Object.keys(assocs).length && "lecm-errands:document" != type) {
+                            for (var assocName in assocs) {
+                                //values - текстовые представления асок. Нужно превести их в объекты
+                                var values = assocs[assocName].split(";");
+                                if (values && values.length) {
+                                    values.forEach(function (textValue) {
+                                        //находим значение в соответствующем справочнике
+                                        var value = getValue(assocName, textValue);
+                                        if (value) {
+                                            if (!dryRun) {
+                                                newDocument.createAssociation(value, assocName);
+                                            }
+                                        } else {
+                                            logger.error("OG2. For assocName " + assocName + " and value " + textValue + " item not found. Document with ref " + nodeRef);
+                                        }
+                                    });
+                                }
+                            }
+                        }
+
+                        //согласование
+                        if (!dryRun && "lecm-errands:document" != type) {
+                            createApprovalRoute(newDocument, approvalData);
+                        }
+
+                        logger.error("OG2. Document with ref " + nodeRef + " created");
+
+                    } catch (e) {
+                        logger.error("OG2. Error while creating document with ref " + nodeRef + ". " + e);
+                    }
+                });
+            });
+        }
+    }
+    logger.error("OG2. DONE " + version);
+}
+
+function createApprovalRoute(document, approvalData) {
     var iteration = routesService.createEmptyIteration(document, routesService.findRouteType("Согласование"));
     if (iteration) {
         var routeOrganization = iteration.assocs["lecmWorkflowRoutes:routeOrganizationAssoc"];
@@ -414,7 +282,7 @@ function createApprovalRoute(document) {
                         'lecmWorkflowRoutesAspects:activeRoute': iteration.nodeRef
                     });
                 } else {
-                    logger.log("Not found stage " + approvalStageData);
+                    logger.error("Not found stage " + approvalStageData);
                 }
             }
         }
@@ -436,50 +304,55 @@ function createApprovalStageItems(stageType, iteration, approvers, props, itemPr
     }
 }
 
-function createAttachments(documentRef) {
-    document = search.findNode(documentRef);
-    var folder = document.childByNamePath("Вложения");
-    var categories = folder.getChildAssocsByType('lecm-document:attachmentsCategory');
-    for (var i = 0; i < attachmentsData.length; i++) {
-        var name = attachmentsData[i].nameAttachment;
-        var categoryName = attachmentsData[i].category;
-        var initiatorRef = attachmentsData[i].initiator;
-        var paths = attachmentsData[i].paths;
-        var initiatorLogin = null;
-        var category = null;
-        var attachment = null;
-        for (var j = 0; j < categories.length; j++) {
-            if (categories[j].properties["cm:name"] == categoryName) {
-                category = categories[j];
+function createAttachments(document, attachmentsData) {
+    try {
+        var folder = document.childByNamePath("Вложения");
+        var categories = folder.getChildAssocsByType('lecm-document:attachmentsCategory');
+        for (var i = 0; i < attachmentsData.length; i++) {
+            var name = attachmentsData[i].nameAttachment;
+            var categoryName = attachmentsData[i].category;
+            var initiatorRef = attachmentsData[i].initiator;
+            var paths = attachmentsData[i].paths;
+            var initiatorLogin = null;
+            var category = null;
+            var attachment = null;
+            for (var j = 0; j < categories.length; j++) {
+                if (categories[j].properties["cm:name"] == categoryName) {
+                    category = categories[j];
+                }
             }
-        }
-        if (initiatorRef != null) {
-            var initiator = search.findNode(initiatorRef);
-            if (initiator) {
-                initiatorLogin = orgstructure.getEmployeeLogin(initiator);
+            if (initiatorRef != null) {
+                var initiator = search.findNode(initiatorRef);
+                if (initiator) {
+                    initiatorLogin = orgstructure.getEmployeeLogin(initiator);
+                }
             }
-        }
-        var nameLength = name.length - 4;
-        for (var j = 0; j < paths.length; j++) {
+            var nameLength = name.length - 4;
+            for (var j = 0; j < paths.length; j++) {
 
-            name = name.substring(0, nameLength) + j + ".pdf";
-            //Распарисить пассы;
-            var a = "contentUrl=store:/" + paths[j].substring((paths[j].indexOf("contentstore", 0) + 12))
-                + "|mimetype=application/pdf|size=" + new java.io.File(paths[j]).length().toString() + "|encoding=UTF-8|locale=ru_RU_";
-            arg = {
-                "cm:content": a
-            }
-            if (initiatorLogin && initiatorLogin) {
-                rnUtils.runAs(initiatorLogin, function () {
+                name = name.substring(0, nameLength) + j + ".pdf";
+                //Распарисить пассы;
+                var a = "contentUrl=store:/" + paths[j].substring((paths[j].indexOf("contentstore", 0) + 12))
+                    + "|mimetype=application/pdf|size=" + new java.io.File(paths[j]).length().toString() + "|encoding=UTF-8|locale=ru_RU_";
+                arg = {
+                    "cm:content": a
+                }
+                if (initiatorLogin && initiatorLogin) {
+                    rnUtils.runAs(initiatorLogin, function () {
+                        attachment = category.createNode(name, 'cm:content', arg);
+                    });
+                } else {
                     attachment = category.createNode(name, 'cm:content', arg);
-                });
-            } else {
-                attachment = category.createNode(name, 'cm:content', arg);
-            }
-            if (attachment == null) {
-                logger.log("Вложений нет");
+                }
+                if (attachment == null) {
+                    logger.error("OG2. Attachments not exist");
+                } else {
+                    logger.error("OG2. Attachments added to doc " + document.nodeRef);
+                }
             }
         }
+    } catch (e) {
+        logger.error("OG2. Error whike attachment added for document " + document.nodeRef + ". " + e);
     }
 }
 
@@ -505,7 +378,7 @@ function getValue(assocName, value) {
             }
         }
     } else {
-        logger.error("OG2. For assocName " + assocName + " and value " + value + " item not found");
+        logger.error("OG2. For assocName " + assocName + " and value " + value + " mapping item not found");
     }
 }
 
@@ -524,10 +397,33 @@ function getValueFromSolar(types, value, path) {
     for (var typeName in types) {
         var param = types[typeName];
         param = param.replace(/-/g, "\\-").replace(":", "\\:");
-        query += 'TYPE:"' + typeName + '" AND @' + param + ':"' + value + '"';
-        counter++;
-        if (counter < count) {
-            query += " OR ";
+        query += 'TYPE:"' + typeName + '" AND';
+        if (param.indexOf(",") > -1) {//для публиков param и value состовные выстраиваем их в соответствующие позициии
+            var params = param.split(",");
+            //разбиваем value по пробелам
+            var values = value.split(" ");
+            //сопостовляем
+            if (params.length == values.length) {
+                for (var i = 0; i < params.length; i++) {
+                    query += ' (' + params[i] + ':"' + values[i] + '")';
+                    if (i < params.length - 1) {
+                        query += " OR ";
+                    }
+
+                }
+                counter++;
+                if (counter < count) {
+                    query += " OR ";
+                }
+            } else {
+                logger.error("OG2. Not found representative for " + value);
+            }
+        } else {
+            query += ' ' + param + ':"' + value + '"';
+            counter++;
+            if (counter < count) {
+                query += " OR ";
+            }
         }
     }
 
@@ -535,14 +431,24 @@ function getValueFromSolar(types, value, path) {
         query += ' AND PATH:"/app:company_home/cm:Business_x0020_platform/cm:LECM/cm:Сервис_x0020_Справочники/' + path + '//*"';
     }
 
-    result = search.query({
-        query: query,
-        language: "fts-alfresco",
-        onerror: "exception"
-    });
+    var firstTry = true;
 
-    if (result && result.length) {
-        return result[0];
+    for (var i = 0; i < 10; i++) {
+        try {
+            if (!firstTry) {
+                logger.error("OG2. Retry number " + i);
+            }
+            result = search.query({
+                query: query,
+                language: "fts-alfresco",
+                onerror: "exception"
+            });
+            return result[0];
+        } catch (e) {
+            logger.error("OG2. Error in solar request " + query + ". " + e);
+            firstTry = false;
+            java.lang.Thread.sleep(1500);
+        }
     }
 
     return "";
