@@ -1,13 +1,14 @@
 package ru.antowka.importer.mapper;
 
+import org.apache.poi.xslf.model.geom.Path;
 import org.springframework.stereotype.Component;
+import ru.antowka.importer.dto.AttachmentPathDto;
 import ru.antowka.importer.dto.NodeDto;
+import ru.antowka.importer.model.Attachment;
 import ru.antowka.importer.model.NodeModel;
 import ru.antowka.importer.model.PropModel;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
@@ -25,6 +26,10 @@ public class NodeToDtoMapper {
         dto.setProps(mapPropsToDto(props));
         dto.setAssocs(mapPropsToDto(assocs));
 
+        final List<AttachmentPathDto> attachmentData = mapAttachmentsToDto(nodeModel.getAttachmentsData());
+        dto.setAttachmentData(attachmentData);
+        dto.setApprovalData(nodeModel.getApprovalData());
+
         return dto;
     }
 
@@ -37,5 +42,35 @@ public class NodeToDtoMapper {
             return new HashMap<>();
         }
 
+    }
+
+    private List<AttachmentPathDto> mapAttachmentsToDto(List<Attachment> attachmentsData) {
+
+        return attachmentsData
+                .stream()
+                .map(att -> {
+                    AttachmentPathDto dto = new AttachmentPathDto();
+                    dto.setNameAttachment(att.getNameAttachment());
+                    dto.setCategory(att.getCategory());
+                    dto.setInitiator(att.getInitiator());
+
+                    List<Map<String, String>> paths = att
+                            .getPaths()
+                            .stream()
+                            .filter(Objects::nonNull)
+                            .map(path -> {
+                                Map<String, String> dtoPath = new HashMap<>();
+                                dtoPath.put("path", path.getPath());
+                                dtoPath.put("type", path.getType());
+                                return dtoPath;
+                            })
+                            .collect(Collectors.toList());
+
+
+
+                    dto.setPaths(paths);
+                    return dto;
+                })
+                .collect(Collectors.toList());
     }
 }

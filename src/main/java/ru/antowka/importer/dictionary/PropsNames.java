@@ -26,7 +26,7 @@ public class PropsNames {
             put("Краткое содержание", new PropModel("lecm-document:title", PropModel.PropType.STRING));
             put("Организация", new PropModel("lecm-orgstr-aspects:linked-organization-assoc", PropModel.PropType.ASSOC));
             put("Состояние подписания", new PropModel("lecm-signing-v2-aspects:signingState", PropModel.PropType.STRING));
-            put("Дата", new PropModel("lecm-document:doc-date", PropModel.PropType.DATE));
+            //put("Дата", new PropModel("lecm-document:doc-date", PropModel.PropType.DATE));
             put("Регистрационный номер", new PropModel("lecm-document:regnum", PropModel.PropType.STRING));
             put("Зарегистрирован", new PropModel("lecm-document-aspects:reg-data-is-registered", PropModel.PropType.BOOLEAN));
             put("Лишить текущего владельца прав на передаваемые документы", new PropModel("lecm-document:deprive-right", PropModel.PropType.BOOLEAN));
@@ -122,7 +122,7 @@ public class PropsNames {
                 put("Требуется отчет", new PropModel("lecm-errands-dic:errand-type-report-required", PropModel.PropType.BOOLEAN));
                 put("Флаг для отключения действий на статусе", new PropModel("lecm-errands:hold-on-project", PropModel.PropType.BOOLEAN));
                 put("Уведомлять Автора", new PropModel("lecm-errands:author-notification", PropModel.PropType.BOOLEAN));
-                put("Документ-основание", new PropModel("lecm-errands:base-document-assoc", PropModel.PropType.ASSOC));
+                put("Документ-основание", new PropModel("lecm-errands:base-assoc", PropModel.PropType.ASSOC));
                 put("Заголовок документа-основания", new PropModel("lecm-errands:base-document-content", PropModel.PropType.STRING));
                 put("Групповое поручение", new PropModel("lecm-errands:is-group", PropModel.PropType.BOOLEAN));
                 put("Тип поручения", new PropModel("lecm-errands:type-assoc", PropModel.PropType.ASSOC));
@@ -292,7 +292,7 @@ public class PropsNames {
         }
 
         if (Objects.isNull(propModelByDocType)) {
-            return new PropModel(presentString, PropModel.PropType.FAIL);
+            return null;
         }
 
         return propModelByDocType;

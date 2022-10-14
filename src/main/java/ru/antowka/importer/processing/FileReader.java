@@ -1,16 +1,20 @@
 package ru.antowka.importer.processing;
 
 import org.springframework.batch.item.file.FlatFileItemReader;
+import org.springframework.batch.item.file.LineCallbackHandler;
 import org.springframework.batch.item.file.LineMapper;
 import org.springframework.core.io.Resource;
 import org.springframework.lang.Nullable;
+import ru.antowka.importer.utils.FileUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -20,20 +24,26 @@ public class FileReader<T>  extends FlatFileItemReader<T> {
 
     private Resource resource;
 
-    private Set<String> readFiles = new HashSet<>();
-    private Set<String> readLines = new HashSet<>();
+    private Set<String> readFiles = new CopyOnWriteArraySet<>();
+    private Set<String> readLines = new CopyOnWriteArraySet<>();
 
 
     @Override
     public void setResource(Resource resource) {
-        super.setResource(resource);
-        this.resource = resource;
+        synchronized (resource) {
+            super.setResource(resource);
+            this.resource = resource;
+        }
     }
 
     @Override
     public void setLineMapper(LineMapper<T> lineMapper) {
         super.setLineMapper(lineMapper);
         this.lineMapper = lineMapper;
+
+        super.setSkippedLinesCallback((a) -> {
+            System.out.println("Skipped");
+        });
     }
 
     @Override
@@ -56,7 +66,8 @@ public class FileReader<T>  extends FlatFileItemReader<T> {
     @Nullable
     private String readLine() {
         try {
-            final String path = resource.getFile().getPath();
+            final File file = resource.getFile();
+            final String path = file.getPath();
 
             //Чтобы читать по файлам, а не по строкам
             if (readFiles.contains(path)) {
@@ -65,7 +76,8 @@ public class FileReader<T>  extends FlatFileItemReader<T> {
             readFiles.add(path);
 
             //Исключаем дубли по версиям
-            final String fileString = new String(Files.readAllBytes(Paths.get(path)), StandardCharsets.UTF_8);
+            final Path path1 = Paths.get(path);
+            final String fileString = FileUtils.readFileByBytes(path1, 0);
             final Pattern compile = Pattern.compile("nodeRef=(.*)?\"");
             final Matcher matcher = compile.matcher(fileString);
             if(matcher.find()) {

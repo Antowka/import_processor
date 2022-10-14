@@ -2,6 +2,7 @@ package ru.antowka.importer.dto;
 
 import lombok.Data;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -19,4 +20,8 @@ public class NodeDto {
     private Map<String, String> props;
 
     private Map<String, String> assocs;
+
+    private List<AttachmentPathDto> attachmentData;
+
+    private Map<String, String> approvalData;
 }

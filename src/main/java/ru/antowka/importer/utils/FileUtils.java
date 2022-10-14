@@ -3,9 +3,8 @@ package ru.antowka.importer.utils;
 import ru.antowka.importer.model.DateFolderModel;
 import ru.antowka.importer.processing.HtmlFileVisitor;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
@@ -24,7 +23,7 @@ public class FileUtils {
      * @param fileSizeInKb - размер файла в Кб
      * @return
      */
-    public static Set<Path> getAllFilesFromSubFolders(Path startPath, String subString, int fileSizeInKb) {
+    public static Set<Path> getAllFilesFromSubFolders(Path startPath, String subString, long fileSizeInKb) {
 
         HtmlFileVisitor fileVisitor = new HtmlFileVisitor(subString, fileSizeInKb);
         try {
@@ -40,11 +39,22 @@ public class FileUtils {
 
     public static String readFileByBytes(Path path, int amountBytes) {
         try (InputStream is = new FileInputStream(path.toFile())) {
-            char[] chars = new char[amountBytes];
-            for (int i = 0; i < amountBytes; i++) {
-                chars[i] = (char) is.read();
+            InputStreamReader isr = new InputStreamReader(is, StandardCharsets.UTF_8);
+            if (amountBytes > 0) {
+                char[] chars = new char[amountBytes + 1];
+                for (int i = 0; i < amountBytes; i++) {
+                    chars[i] = (char) isr.read();
+                }
+                return new String(chars);
+            } else {
+                BufferedReader reader = new BufferedReader(isr);
+                StringBuilder sb = new StringBuilder();
+                String str;
+                while ((str = reader.readLine()) != null) {
+                    sb.append(str);
+                }
+                return sb.toString();
             }
-            return new String(chars);
         } catch (Exception e) {
             e.printStackTrace();
         }
