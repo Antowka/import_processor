@@ -94,7 +94,7 @@ var dryRun = false;
 //если true - то пытаемся создать вложения у существующих доков
 var tryToCreateAttachments = false;
 
-var version = "DocumentsCreator.js version 11";
+var version = "DocumentsCreator.js version 12";
 
 
 try {
@@ -115,7 +115,7 @@ function run() {
         var props = inputObject[i].props;
         var assocs = inputObject[i].assocs;
         var approvalData = inputObject[i].approvalData;
-        var attachmentsData = attachmentsData[i].approvalData;
+        var attachmentsData = inputObject[i].approvalData;
 
         var existDocument = search.findNode(nodeRef);
         if (existDocument) {
