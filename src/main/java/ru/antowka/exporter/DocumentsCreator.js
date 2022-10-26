@@ -100,7 +100,7 @@ var version = "DocumentsCreator.js version 12";
 try {
     logger.error("OG2. Begin " + version);
     //var document - вложение, передаваемое из js консоли
-    var inputObject = JSON.parse(document.content);
+    var inputObject = JSON.parse(document.content.substring(document.content.indexOf("["), document.content.length()));
 } catch (e) {
     logger.error("OG2. Error in read json file ." + e);
 }
