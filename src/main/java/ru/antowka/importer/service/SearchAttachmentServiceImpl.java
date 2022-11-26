@@ -9,15 +9,13 @@ import ru.antowka.importer.entitiy.BjRecord;
 import ru.antowka.importer.mapper.AttachmentRowMapper;
 import ru.antowka.importer.model.Attachment;
 import ru.antowka.importer.model.Path;
+import ru.antowka.importer.utils.FileUtils;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 @Service
 public class SearchAttachmentServiceImpl implements SearchAttachmentService {
@@ -37,16 +35,10 @@ public class SearchAttachmentServiceImpl implements SearchAttachmentService {
 
 
     public String checkFile(File file) throws IOException {
-        InputStream is = new FileInputStream(file);
-        char[] chars = new char[10];
-        for (int i = 0; i < 10; i++) {
-            chars[i] = (char) is.read();
-        }
-        if (new String(chars) != null && new String(chars).contains("PDF")) {
-            is.close();
+        final String symbolsFromFile = FileUtils.readFileByBytes(file.toPath(), 10);
+        if (symbolsFromFile.contains("PDF")) {
             return "pdf";
         }
-        is.close();
         return "-";
     }
 
@@ -62,13 +54,13 @@ public class SearchAttachmentServiceImpl implements SearchAttachmentService {
                 features.add(submit);
             }
         } else {
-            System.out.println("Нет записей в bj по данному документу " + nodeRef);
+            System.out.println("ATTACHMENTS: Нет записей в bj по данному документу " + nodeRef);
         }
 
         if (!features.isEmpty()) {
             while (!features.stream().allMatch(Future::isDone)) {
                 try {
-                    Thread.sleep(3000);
+                    Thread.sleep(2000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

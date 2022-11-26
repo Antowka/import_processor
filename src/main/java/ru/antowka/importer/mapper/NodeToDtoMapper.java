@@ -46,6 +46,8 @@ public class NodeToDtoMapper {
 
     private List<AttachmentPathDto> mapAttachmentsToDto(List<Attachment> attachmentsData) {
 
+        if (attachmentsData == null) return new ArrayList<>();
+
         return attachmentsData
                 .stream()
                 .map(att -> {

@@ -44,6 +44,8 @@ public class NotificationServiceImpl implements NotificationService {
 
         Map<String, String> approvalData = new HashMap<>();
 
+        System.out.println("APPROVAL_DATA: Found notification records: " + directRecords.size());
+
         for (String appoverRef : appoverRefs) {
             //ищем записи о вынесении решения от конкретного согласующего
             List<NotificationRecord> resolutionRecords = jdbcTemplate.query(String.format(QUERY_APPROVAL_EMPLOYEE_RESOLUTION, docRef, notificationType, TEMPLATE_APPROVAL_EMPLOYEE_RESOLUTION, appoverRef),

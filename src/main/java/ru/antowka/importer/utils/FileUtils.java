@@ -1,14 +1,18 @@
 package ru.antowka.importer.utils;
 
+import org.javaync.io.AsyncFiles;
 import ru.antowka.importer.model.DateFolderModel;
 import ru.antowka.importer.processing.HtmlFileVisitor;
 
 import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousFileChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -37,29 +41,19 @@ public class FileUtils {
         return fileVisitor.getFoundFiles();
     }
 
-    public static String readFileByBytes(Path path, int amountBytes) {
-        try (InputStream is = new FileInputStream(path.toFile())) {
-            InputStreamReader isr = new InputStreamReader(is, StandardCharsets.UTF_8);
-            if (amountBytes > 0) {
-                char[] chars = new char[amountBytes + 1];
-                for (int i = 0; i < amountBytes; i++) {
-                    chars[i] = (char) isr.read();
-                }
-                return new String(chars);
-            } else {
-                BufferedReader reader = new BufferedReader(isr);
-                StringBuilder sb = new StringBuilder();
-                String str;
-                while ((str = reader.readLine()) != null) {
-                    sb.append(str);
-                }
-                return sb.toString();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public static String readFileByBytes(Path path, int amountBytes) throws IOException {
 
-        return "";
+        if (amountBytes > 0) {
+            return AsyncFiles
+                    .readAllBytes(path, amountBytes)
+                    .thenApply(bytes -> new String(bytes, StandardCharsets.UTF_8))
+                    .join();
+        } else {
+            return AsyncFiles
+                    .readAllBytes(path)
+                    .thenApply(bytes -> new String(bytes, StandardCharsets.UTF_8))
+                    .join();
+        }
     }
 
     /**
@@ -81,5 +75,10 @@ public class FileUtils {
                   return Files.exists(pathForCheck);
                 })
                 .collect(Collectors.toSet());
+    }
+
+    public static Set<Path> buildPathsFolderByDay(String contentStorePath, DateFolderModel dateFolderModel) {
+        final Path path = Paths.get(contentStorePath, dateFolderModel.getDateForOutputPath());
+        return new HashSet<Path>() {{add(path);}};
     }
 }

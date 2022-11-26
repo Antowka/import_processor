@@ -1,5 +1,6 @@
 package ru.antowka.importer.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobExecutionListener;
@@ -11,10 +12,6 @@ import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.job.builder.SimpleJobBuilder;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.item.file.MultiResourceItemReader;
-import org.springframework.batch.item.file.builder.MultiResourceItemReaderBuilder;
-import org.springframework.batch.item.json.JacksonJsonObjectMarshaller;
-import org.springframework.batch.item.json.JsonFileItemWriter;
-import org.springframework.batch.item.json.builder.JsonFileItemWriterBuilder;
 import org.springframework.batch.item.support.CompositeItemProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,28 +21,30 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.scheduling.concurrent.ThreadPoolExecutorFactoryBean;
 import org.springframework.util.CollectionUtils;
+import ru.antowka.importer.dto.NodeDto;
 import ru.antowka.importer.mapper.NodeMapper;
 import ru.antowka.importer.model.DateFolderModel;
 import ru.antowka.importer.model.NodeModel;
+import ru.antowka.importer.override.MultiResourceItemReaderBuilderExt;
 import ru.antowka.importer.processing.AttachmentsProcessor;
-import ru.antowka.importer.processing.DtoProcessor;
 import ru.antowka.importer.processing.FileReader;
+import ru.antowka.importer.processing.NodeAggregator;
 import ru.antowka.importer.processing.NotificationProcessor;
 import ru.antowka.importer.utils.FileUtils;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ThreadFactory;
 import java.util.stream.Collectors;
 
 @Configuration
@@ -57,6 +56,9 @@ public class BatchConfig {
 
     @Autowired
     public StepBuilderFactory stepBuilderFactory;
+
+    @Autowired
+    private NodeAggregator nodeAggregator;
 
     /**
      * Дата обработки файлов
@@ -82,8 +84,16 @@ public class BatchConfig {
     @Value("${html.file.read.limit.kb}")
     private int htmlFileReadLimitKb;
 
+    /**
+     * Ограничение размера файла, который читаем при поиске html-файла
+     */
+    @Value("${threads.limit:5}")
+    private int threadLimit;
+
     @Autowired
     private ExecutorService taskWorker;
+
+    private long processedFileCounter = 0;
 
 
     public BatchConfig(@Value("${date.processing.date}") String startDateProcessing, @Value("${path.folder.output}") String outPathString) throws IOException {
@@ -96,7 +106,7 @@ public class BatchConfig {
     }
 
     public MultiResourceItemReader<NodeModel> multiResourceItemReader(final Resource[] filesForProcessing) {
-        return new MultiResourceItemReaderBuilder<NodeModel>()
+        return new MultiResourceItemReaderBuilderExt<NodeModel>()
                 .delegate(reader())
                 .resources(filesForProcessing)
                 .name("multiReader")
@@ -111,22 +121,6 @@ public class BatchConfig {
     @Bean
     public NotificationProcessor notificationProcessor() {
         return new NotificationProcessor();
-    }
-
-    @Bean
-    public DtoProcessor dtoProcessor() {
-        return new DtoProcessor();
-    }
-
-    public JsonFileItemWriter<NodeModel> writer(Path outputFileForStep) {
-        JsonFileItemWriterBuilder<NodeModel> builder = new JsonFileItemWriterBuilder<>();
-        JacksonJsonObjectMarshaller<NodeModel> marshaller = new JacksonJsonObjectMarshaller<>();
-
-        return builder
-                .name("jsonNodeModelWriter")
-                .jsonObjectMarshaller(marshaller)
-                .resource(new FileSystemResource(outputFileForStep))
-                .build();
     }
 
     @Bean
@@ -154,28 +148,28 @@ public class BatchConfig {
                 .incrementer(new RunIdIncrementer());
 
         SimpleJobBuilder flow = null;
-        int stepCounter = 0;
 
         final Set<Path> pathsOfHoursInDay = FileUtils.buildPathsForHoursFolderByDay(pathToContentStore, processingDate);
+        int stepCounter = 0;
         for (Path hourPath : pathsOfHoursInDay) {
-
             final Resource[] filesForProcessing = getFilesForProcessing(hourPath);
 
-            if (filesForProcessing != null) {
-                if (Objects.isNull(flow)) {
-                    flow = readHtmlFilesJob.start(mainStep("step_" + stepCounter, filesForProcessing));
-                } else {
-                    flow.next(mainStep("step_" + stepCounter, filesForProcessing));
-                }
-                stepCounter++;
-            } else {
+            if (filesForProcessing == null) {
                 continue;
             }
+            processedFileCounter += filesForProcessing.length;
+            if (Objects.isNull(flow)) {
+                flow = readHtmlFilesJob.start(mainStep("STEP_" + stepCounter, filesForProcessing));
+            } else {
+                flow.next(mainStep("STEP_" + stepCounter, filesForProcessing));
+            }
+            stepCounter++;
         }
 
         if (Objects.isNull(flow)) {
             throw new IllegalArgumentException("Flow is empty, some problems with arguments (start date, end date) or path to contentStore");
         }
+        System.out.println("ALL FILES FOUND FOR PROCESSING: " + processedFileCounter);
 
         return flow
                 .listener(new JobExecutionListener() {
@@ -186,6 +180,22 @@ public class BatchConfig {
 
                     @Override
                     public void afterJob(JobExecution jobExecution) {
+
+                        final List<NodeDto> aggregateNodes = nodeAggregator.getAggregateNodes();
+                        System.out.println("DOCUMENTS FOR EXPORT: " + aggregateNodes.size());
+
+                        try {
+                            ObjectMapper mapper = new ObjectMapper();
+                            String jsonString = mapper.writeValueAsString(aggregateNodes);
+                            Files.write(Paths.get(outputFolder.toString(), "result.json"),
+                                    jsonString.getBytes(StandardCharsets.UTF_8),
+                                    StandardOpenOption.CREATE,
+                                    StandardOpenOption.TRUNCATE_EXISTING);
+
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
                         taskWorker.shutdownNow();
                     }
                 })
@@ -233,21 +243,24 @@ public class BatchConfig {
 
     //ШАГИ
     public Step mainStep(String nameStep, final Resource[] filesForProcessing) {
-        return stepBuilderFactory.get(nameStep)
+        return stepBuilderFactory
+                .get(nameStep)
                 //.listener(new StepResultListener())
-                .<NodeModel, NodeModel>chunk(3)
+                .<NodeModel, NodeModel>chunk(threadLimit * 10)
                 .reader(multiResourceItemReader(filesForProcessing))
-                .faultTolerant()
+                //.faultTolerant()
                 .processor(compositeItemProcessor())
-                .writer(writer(Paths.get(outputFolder.toString(),  "result_" + nameStep + ".json")))
+                .writer(nodeAggregator)
                 .taskExecutor(taskExecutor())
-                .throttleLimit(3)
+                //.throttleLimit(3)
                 .build();
     }
 
     @Bean
     public TaskExecutor taskExecutor() {
-        return new SimpleAsyncTaskExecutor("spring_batch_pool_");
+        final SimpleAsyncTaskExecutor taskExecutor = new SimpleAsyncTaskExecutor("spring_batch_pool_");
+        taskExecutor.setConcurrencyLimit(threadLimit);
+        return taskExecutor;
     }
 
     @Bean
@@ -256,7 +269,6 @@ public class BatchConfig {
         List itemProcessors = new ArrayList();
         itemProcessors.add(attachmentProcessor());
         itemProcessors.add(notificationProcessor());
-        itemProcessors.add(dtoProcessor());
         compositeProcessor.setDelegates(itemProcessors);
 
         return compositeProcessor;

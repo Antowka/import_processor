@@ -5,6 +5,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.batch.item.file.LineMapper;
+import org.springframework.util.StringUtils;
 import ru.antowka.importer.dictionary.DocType;
 import ru.antowka.importer.dictionary.PropsNames;
 import ru.antowka.importer.model.NodeModel;
@@ -28,6 +29,11 @@ public class NodeMapper implements LineMapper<NodeModel> {
     @Override
     public NodeModel mapLine(String stringOfHtmlFile, int lineNumber) throws Exception {
 
+        final NodeModel nodeModel = new NodeModel();
+        if (StringUtils.isEmpty(stringOfHtmlFile)) {
+            return nodeModel;
+        }
+
         final Document htmlDocument = Jsoup.parse(stringOfHtmlFile, "UTF-8");
         final Elements linkForDocument = htmlDocument.getElementsByAttribute("href");
         if (Objects.isNull(linkForDocument) || linkForDocument.isEmpty()) {
@@ -40,7 +46,6 @@ public class NodeMapper implements LineMapper<NodeModel> {
                 .get("href")
                 .replaceAll("(htt.*=)", "");
 
-        final NodeModel nodeModel = new NodeModel();
         nodeModel.setNodeRef(nodeRef);
         nodeModel.setName(linkForDocument.text());
 
