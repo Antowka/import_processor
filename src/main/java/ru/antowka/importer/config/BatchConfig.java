@@ -12,6 +12,9 @@ import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.job.builder.SimpleJobBuilder;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.item.file.MultiResourceItemReader;
+import org.springframework.batch.item.json.JacksonJsonObjectMarshaller;
+import org.springframework.batch.item.json.JsonFileItemWriter;
+import org.springframework.batch.item.json.builder.JsonFileItemWriterBuilder;
 import org.springframework.batch.item.support.CompositeItemProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,7 +32,6 @@ import ru.antowka.importer.model.NodeModel;
 import ru.antowka.importer.override.MultiResourceItemReaderBuilderExt;
 import ru.antowka.importer.processing.AttachmentsProcessor;
 import ru.antowka.importer.processing.FileReader;
-import ru.antowka.importer.processing.NodeAggregator;
 import ru.antowka.importer.processing.NotificationProcessor;
 import ru.antowka.importer.utils.FileUtils;
 
@@ -56,9 +58,6 @@ public class BatchConfig {
 
     @Autowired
     public StepBuilderFactory stepBuilderFactory;
-
-    @Autowired
-    private NodeAggregator nodeAggregator;
 
     /**
      * Дата обработки файлов
@@ -180,22 +179,6 @@ public class BatchConfig {
 
                     @Override
                     public void afterJob(JobExecution jobExecution) {
-
-                        final List<NodeDto> aggregateNodes = nodeAggregator.getAggregateNodes();
-                        System.out.println("DOCUMENTS FOR EXPORT: " + aggregateNodes.size());
-
-                        try {
-                            ObjectMapper mapper = new ObjectMapper();
-                            String jsonString = mapper.writeValueAsString(aggregateNodes);
-                            Files.write(Paths.get(outputFolder.toString(), "result.json"),
-                                    jsonString.getBytes(StandardCharsets.UTF_8),
-                                    StandardOpenOption.CREATE,
-                                    StandardOpenOption.TRUNCATE_EXISTING);
-
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-
                         taskWorker.shutdownNow();
                     }
                 })
@@ -240,6 +223,18 @@ public class BatchConfig {
         return resources.toArray(new Resource[]{});
     }
 
+    public JsonFileItemWriter<NodeModel> writer(Path outputFileForStep) {
+        JsonFileItemWriterBuilder<NodeModel> builder = new JsonFileItemWriterBuilder<>();
+        JacksonJsonObjectMarshaller<NodeModel> marshaller = new JacksonJsonObjectMarshaller<>();
+
+        return builder
+                .name("jsonNodeModelWriter")
+                .jsonObjectMarshaller(marshaller)
+                .resource(new FileSystemResource(outputFileForStep))
+                .build();
+    }
+
+
 
     //ШАГИ
     public Step mainStep(String nameStep, final Resource[] filesForProcessing) {
@@ -250,7 +245,7 @@ public class BatchConfig {
                 .reader(multiResourceItemReader(filesForProcessing))
                 //.faultTolerant()
                 .processor(compositeItemProcessor())
-                .writer(nodeAggregator)
+                .writer(writer(Paths.get(outputFolder.toString(),  "result_" + nameStep + ".json")))
                 .taskExecutor(taskExecutor())
                 //.throttleLimit(3)
                 .build();
