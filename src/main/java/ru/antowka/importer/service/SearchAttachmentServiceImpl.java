@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import ru.antowka.importer.entitiy.BjRecord;
 import ru.antowka.importer.mapper.AttachmentRowMapper;
 import ru.antowka.importer.model.Attachment;
@@ -15,7 +16,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
 
 @Service
 public class SearchAttachmentServiceImpl implements SearchAttachmentService {
@@ -46,31 +46,18 @@ public class SearchAttachmentServiceImpl implements SearchAttachmentService {
         String query = "SELECT \"DATE\" , \"INITIATOR\" , \"RECORDDESCRIPTION\" , \"OBJECT1\"   FROM \"BUSINESSJOURNALSTORERECORD\" where \"EVENTCATEGORYTEXT\" = 'Добавление вложения' AND \"MAINOBJECT\" ='" + nodeRef + "'";
         List<BjRecord> bjList = jdbcTemplate.query(query, new AttachmentRowMapper());
         List<Attachment> attachmentList = Collections.synchronizedList(new ArrayList<>());
-        List<Future<Boolean>> features = Collections.synchronizedList(new ArrayList<>());
         if (bjList.size() > 0) {
             for (BjRecord bj : bjList) {
-                final Future<Boolean> submit = taskWorker.submit(() ->
-                    processAttachments(nodeRef, attachmentList, bj));
-                features.add(submit);
+                processAttachments(nodeRef, attachmentList, bj);
             }
         } else {
             System.out.println("ATTACHMENTS: Нет записей в bj по данному документу " + nodeRef);
         }
 
-        if (!features.isEmpty()) {
-            while (!features.stream().allMatch(Future::isDone)) {
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
         return attachmentList;
     }
 
-    private Boolean processAttachments(String nodeRef, List<Attachment> attachmentList, BjRecord bj) {
+    private void processAttachments(String nodeRef, List<Attachment> attachmentList, BjRecord bj) {
         List<Path> paths = new ArrayList<>();
         Attachment attachment = new Attachment();
         String record = bj.getRecord();
@@ -95,6 +82,11 @@ public class SearchAttachmentServiceImpl implements SearchAttachmentService {
         File[] arr1Files = dir1.listFiles();
         File[] arr2Files = dir2.listFiles();
         File[] arrFiles;
+
+        System.out.println("Для документа " + nodeRef + " найдены папки с вложениями: ");
+        System.out.println("  - " + path1);
+        System.out.println("  - " + path2);
+
         if (arr2Files != null) {
             arrFiles = new File[arr2Files.length + arr1Files.length];
             System.arraycopy(arr1Files, 0, arrFiles, 0, arr1Files.length);
@@ -119,11 +111,12 @@ public class SearchAttachmentServiceImpl implements SearchAttachmentService {
                 }
             }
             attachment.setPaths(paths);
+            if (!CollectionUtils.isEmpty(attachment.getPaths())) {
+                System.out.println("Добавлен Attachment для  " + nodeRef + " c путём " + attachment.getPaths().get(0));
+            }
             attachmentList.add(attachment);
         } else {
             System.out.println("По записи в bj не нашли ни одного вложения. NodeRef документа " + nodeRef);
         }
-
-        return true;
     }
 }
