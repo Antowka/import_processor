@@ -1,4 +1,6 @@
 //TODO прикрутить локальный кэш
+var ctx = Packages.org.springframework.web.context.ContextLoader.getCurrentWebApplicationContext();
+var nodeService = ctx.getBean('nodeService', ctx.getClass().getClassLoader().loadClass('java.lang.reflect.Proxy'));
 
 var date_regex = /^([\+-]?\d{4}(?!\d{2}\b))((-?)((0[1-9]|1[0-2])(\3([12]\d|0[1-9]|3[01]))?|W([0-4]\d|5[0-2])(-?[1-7])?|(00[1-9]|0[1-9]\d|[12]\d{2}|3([0-5]\d|6[1-6])))([T\s]((([01]\d|2[0-3])((:?)[0-5]\d)?|24\:?00)([\.,]\d+(?!:))?)?(\17[0-5]\d([\.,]\d+)?)?([zZ]|([\+-])([01]\d|2[0-3]):?([0-5]\d)?)?)?)?$/;
 
@@ -92,7 +94,7 @@ var dictionaryMapping = {
 var dryRun = false;
 
 //если true - то пытаемся создать вложения у существующих доков
-var tryToCreateAttachments = false;
+var tryToCreateAttachments = true;
 
 var version = "DocumentsCreator.js version 12";
 
@@ -107,15 +109,14 @@ try {
 
 run();
 
-
 function run() {
     for (var i = 0; i < inputObject.length; i++) {
         var type = inputObject[i].type;
         var nodeRef = inputObject[i].nodeRef;
-        var props = inputObject[i].props;
-        var assocs = inputObject[i].assocs;
+        var props = propsConverter(inputObject[i].props);
+        var assocs = propsConverter(inputObject[i].assocs);
         var approvalData = inputObject[i].approvalData;
-        var attachmentsData = inputObject[i].approvalData;
+        var attachmentsData = inputObject[i].attachmentsData;
 
         var existDocument = search.findNode(nodeRef);
         if (existDocument) {
@@ -228,6 +229,11 @@ function run() {
                             createApprovalRoute(newDocument, approvalData);
                         }
 
+                        if (!dryRun && tryToCreateAttachments) {
+                            logger.error("OG2. Try to create attachments for document with ref " + nodeRef);
+                            createAttachments(newDocument, attachmentsData);
+                        }
+
                         logger.error("OG2. Document with ref " + nodeRef + " created");
 
                     } catch (e) {
@@ -332,14 +338,16 @@ function createAttachments(document, attachmentsData) {
 
                 name = name.substring(0, nameLength) + j + ".pdf";
                 //Распарисить пассы;
-                var a = "contentUrl=store:/" + paths[j].substring((paths[j].indexOf("contentstore", 0) + 12))
-                    + "|mimetype=application/pdf|size=" + new java.io.File(paths[j]).length().toString() + "|encoding=UTF-8|locale=ru_RU_";
-                arg = {
-                    "cm:content": a
-                }
+                var storePathRelative = paths[j].path.substring((paths[j].path.indexOf("contentstore", 0) + 12));
+                var url = "store:/" + storePathRelative;
+                var fileSize = new Packages.java.io.File('/opt/infooborot/alf_data/contentstore' + storePathRelative).length();
+                var contentData = new org.alfresco.service.cmr.repository.ContentData(url, "application/pdf", fileSize, "UTF-8", new Packages.java.util.Locale("RU_ru"));
+
                 if (initiatorLogin && initiatorLogin) {
-                    rnUtils.runAs(initiatorLogin, function () {
-                        attachment = category.createNode(name, 'cm:content', arg);
+                    //rnUtils.runAs(initiatorLogin, function () {
+                    rnUtils.runAs("admin", function () {
+                        //attachment = category.createNode(name, 'cm:content', arg);
+                        attachment = category.createNode(name, 'cm:content', {});
                     });
                 } else {
                     attachment = category.createNode(name, 'cm:content', arg);
@@ -348,6 +356,7 @@ function createAttachments(document, attachmentsData) {
                     logger.error("OG2. Attachments not exist");
                 } else {
                     logger.error("OG2. Attachments added to doc " + document.nodeRef);
+                    nodeService.setProperty(attachment.nodeRef, Packages.org.alfresco.model.ContentModel.PROP_CONTENT, contentData);
                 }
             }
         }
@@ -452,4 +461,12 @@ function getValueFromSolar(types, value, path) {
     }
 
     return "";
+}
+
+function propsConverter(props) {
+    var result = {};
+    props.forEach(function(prop) {
+        result[prop.name.trim()] = prop.value.trim();
+    });
+    return result;
 }
