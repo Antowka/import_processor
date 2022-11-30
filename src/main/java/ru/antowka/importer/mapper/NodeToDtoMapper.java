@@ -1,6 +1,5 @@
 package ru.antowka.importer.mapper;
 
-import org.apache.poi.xslf.model.geom.Path;
 import org.springframework.stereotype.Component;
 import ru.antowka.importer.dto.AttachmentPathDto;
 import ru.antowka.importer.dto.NodeDto;
@@ -67,7 +66,6 @@ public class NodeToDtoMapper {
                                 return dtoPath;
                             })
                             .collect(Collectors.toList());
-
 
 
                     dto.setPaths(paths);

@@ -1,6 +1,5 @@
 package ru.antowka.importer.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobExecutionListener;
@@ -25,7 +24,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.util.CollectionUtils;
-import ru.antowka.importer.dto.NodeDto;
 import ru.antowka.importer.mapper.NodeMapper;
 import ru.antowka.importer.model.DateFolderModel;
 import ru.antowka.importer.model.NodeModel;
@@ -36,11 +34,9 @@ import ru.antowka.importer.processing.NotificationProcessor;
 import ru.antowka.importer.utils.FileUtils;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -235,7 +231,6 @@ public class BatchConfig {
     }
 
 
-
     //ШАГИ
     public Step mainStep(String nameStep, final Resource[] filesForProcessing) {
         return stepBuilderFactory
@@ -245,7 +240,7 @@ public class BatchConfig {
                 .reader(multiResourceItemReader(filesForProcessing))
                 //.faultTolerant()
                 .processor(compositeItemProcessor())
-                .writer(writer(Paths.get(outputFolder.toString(),  "result_" + nameStep + ".json")))
+                .writer(writer(Paths.get(outputFolder.toString(), "result_" + nameStep + ".json")))
                 .taskExecutor(taskExecutor())
                 //.throttleLimit(3)
                 .build();

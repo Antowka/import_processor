@@ -1,21 +1,25 @@
 package ru.antowka.importer.service;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import ru.antowka.importer.entitiy.BjRecord;
 import ru.antowka.importer.mapper.AttachmentRowMapper;
 import ru.antowka.importer.model.Attachment;
+import ru.antowka.importer.model.DateFolderModel;
 import ru.antowka.importer.model.Path;
 import ru.antowka.importer.utils.FileUtils;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Service
 public class SearchAttachmentServiceImpl implements SearchAttachmentService {
@@ -30,25 +34,27 @@ public class SearchAttachmentServiceImpl implements SearchAttachmentService {
     @Value("${path.to.contentstore}")
     private String pathToContentStore;
 
+    @Value("${time.max.diff.dj.and.file}")
+    private Long maxDiffTimeMsBjAndFile;
+
+    private Date startDateProcessing;
+
     @Autowired
-    private ExecutorService taskWorker;
-
-
-    public String checkFile(File file) throws IOException {
-        final String symbolsFromFile = FileUtils.readFileByBytes(file.toPath(), 10);
-        if (symbolsFromFile.contains("PDF")) {
-            return "pdf";
-        }
-        return "-";
+    public SearchAttachmentServiceImpl(@Value("${date.processing.date}") String startDateProcessingString) {
+        startDateProcessing = new DateFolderModel(startDateProcessingString).getDate();
     }
 
-    public List<Attachment> searchAttachmentsDocument(String nodeRef) throws IOException {
-        String query = "SELECT \"DATE\" , \"INITIATOR\" , \"RECORDDESCRIPTION\" , \"OBJECT1\"   FROM \"BUSINESSJOURNALSTORERECORD\" where \"EVENTCATEGORYTEXT\" = 'Добавление вложения' AND \"MAINOBJECT\" ='" + nodeRef + "'";
-        List<BjRecord> bjList = jdbcTemplate.query(query, new AttachmentRowMapper());
-        List<Attachment> attachmentList = Collections.synchronizedList(new ArrayList<>());
+    public List<Attachment> searchAttachmentsDocument(String nodeRef) {
+
+        List<BjRecord> bjList = getBJRecordsFromDBSortByDate(nodeRef);
+        List<Attachment> attachmentList = new ArrayList<>();
+
         if (bjList.size() > 0) {
             for (BjRecord bj : bjList) {
-                processAttachments(nodeRef, attachmentList, bj);
+                final Attachment attachment = processAttachments(nodeRef, bj);
+                if (Objects.nonNull(attachment)) {
+                    attachmentList.add(attachment);
+                }
             }
         } else {
             System.out.println("ATTACHMENTS: Нет записей в bj по данному документу " + nodeRef);
@@ -57,66 +63,142 @@ public class SearchAttachmentServiceImpl implements SearchAttachmentService {
         return attachmentList;
     }
 
-    private void processAttachments(String nodeRef, List<Attachment> attachmentList, BjRecord bj) {
+    /**
+     * Выбираем по nodeRef-документа все записи журнала из категории "Добавление вложения"
+     *
+     * @param nodeRef
+     * @return
+     */
+    private List<BjRecord> getBJRecordsFromDBSortByDate(String nodeRef) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(startDateProcessing);
+        String timeSuffix = "00:00:00.0 +03:00";
+
+        String startYear = String.valueOf(calendar.get(Calendar.YEAR));
+        String startMonth = String.valueOf(calendar.get(Calendar.MONTH) + 1);
+        String startDay = String.valueOf(calendar.get(Calendar.DAY_OF_MONTH));
+        String startDateString = startYear + "-" + startMonth + "-" + startDay + " " + timeSuffix;
+
+
+        calendar.add(Calendar.DAY_OF_MONTH, 1);
+        String endtYear = String.valueOf(calendar.get(Calendar.YEAR));
+        String endMonth = String.valueOf(calendar.get(Calendar.MONTH) + 1);
+        String endDay = String.valueOf(calendar.get(Calendar.DAY_OF_MONTH));
+        String endDateString = endtYear + "-" + endMonth + "-" + endDay + " " + timeSuffix;
+
+
+        String query = "SELECT \"DATE\", \"INITIATOR\" , \"RECORDDESCRIPTION\" , \"OBJECT1\"   FROM \"BUSINESSJOURNALSTORERECORD\" where \"EVENTCATEGORYTEXT\" = 'Добавление вложения' AND \"MAINOBJECT\" ='" + nodeRef + "' AND \"DATE\" > '" + startDateString + "' AND \"DATE\" < '" + endDateString + "'  ORDER BY \"DATE\" ASC";
+        List<BjRecord> bjList = jdbcTemplate.query(query, new AttachmentRowMapper());
+        return bjList;
+    }
+
+    private Attachment processAttachments(String nodeRef, BjRecord bj) {
         List<Path> paths = new ArrayList<>();
         Attachment attachment = new Attachment();
         String record = bj.getRecord();
+
         String name = record.substring(record.indexOf(bj.getRefAttachment(), 1), record.indexOf("к документу"));
-        attachment.setNameAttachment(name.substring(name.indexOf(">") + 1, name.length() - 5));
+
+        String nameAttachment = getRealFileName(name);
+
+        attachment.setNameAttachment(nameAttachment);
         if (record.indexOf("в категорию") > 0) {
             attachment.setCategory(record.substring(record.indexOf("в категорию") + 13, record.length() - 1));
+        } else {
+            System.out.println("Не удалось найти категорию вложения для записи: " + nameAttachment);
+            return null;
         }
         attachment.setInitiator(bj.getInitiator());
-        String path1 = pathToContentStore + (bj.getDate().toString().substring(0, 4)) + File.separator +
-                Integer.valueOf(bj.getDate().toString().substring(5, 7)) + File.separator
-                + Integer.valueOf(bj.getDate().toString().substring(8, 10)) + File.separator
-                + Integer.valueOf(bj.getDate().toString().substring(11, 13)) + File.separator
-                + Integer.valueOf(bj.getDate().toString().substring(14, 16));
-        String path2 = pathToContentStore + (bj.getDate().toString().substring(0, 4)) + File.separator +
-                Integer.valueOf(bj.getDate().toString().substring(5, 7)) + File.separator
-                + Integer.valueOf(bj.getDate().toString().substring(8, 10)) + File.separator
-                + Integer.valueOf(bj.getDate().toString().substring(11, 13)) + File.separator
-                + (Integer.valueOf(bj.getDate().toString().substring(14, 16)) + 1);
-        File dir1 = new File(path1);
-        File dir2 = new File(path2);
+
+        final java.nio.file.Path path1 = FileUtils.buildPathByDate(pathToContentStore, bj.getDate(), null);
+
+        File dir1 = path1.toFile();
         File[] arr1Files = dir1.listFiles();
-        File[] arr2Files = dir2.listFiles();
-        File[] arrFiles;
 
-        System.out.println("Для документа " + nodeRef + " найдены папки с вложениями: ");
-        System.out.println("  - " + path1);
-        System.out.println("  - " + path2);
+        if (arr1Files != null && arr1Files.length > 0) {
+            System.out.println("Для документа " + nodeRef + " найдены папки с вложениями: ");
+            System.out.println("  - " + path1);
 
-        if (arr2Files != null) {
-            arrFiles = new File[arr2Files.length + arr1Files.length];
-            System.arraycopy(arr1Files, 0, arrFiles, 0, arr1Files.length);
-            System.arraycopy(arr2Files, 0, arrFiles, arr1Files.length, arr2Files.length);
-        } else if (arr1Files != null) {
-            arrFiles = new File[arr1Files.length];
+            File[] arrFiles = new File[arr1Files.length];
             System.arraycopy(arr1Files, 0, arrFiles, 0, arr1Files.length);
 
-            List<File> lst = Arrays.asList(arrFiles);
+            List<File> lst = Arrays.stream(arrFiles)
+                    .sorted(Comparator.comparingLong(File::lastModified))
+                    .collect(Collectors.toList());
+
             for (File file : lst) {
-                String type = "-";
-                try {
-                    type = checkFile(file);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                String type = FileUtils.getFileMime(file);
                 if (!Objects.equals(type, "-")) {
-                    Path path = new Path();
-                    path.setPath(file.toPath().toString());
-                    path.setType(type);
-                    paths.add(path);
+                    //Проверяем чтобы вложение было того типа который указан в записи БЖ
+                    if (typeIsOk(attachment, type)) {
+                        if (isDiffIsOk(bj, file)) {
+                            Path path = new Path();
+                            path.setPath(file.toPath().toString());
+                            path.setType(type);
+                            paths.add(path);
+                        }
+                    }
+                }
+
+                attachment.setPaths(paths);
+                if (!CollectionUtils.isEmpty(attachment.getPaths())) {
+                    System.out.println("Добавлен Attachment для  " + nodeRef + " c путём " + attachment.getPaths().get(0));
                 }
             }
-            attachment.setPaths(paths);
-            if (!CollectionUtils.isEmpty(attachment.getPaths())) {
-                System.out.println("Добавлен Attachment для  " + nodeRef + " c путём " + attachment.getPaths().get(0));
+
+            if (CollectionUtils.isEmpty(attachment.getPaths())) {
+                System.out.println("Для документа НЕ найдены вложения. " + nodeRef);
+                return null;
             }
-            attachmentList.add(attachment);
+
+            return attachment;
         } else {
             System.out.println("По записи в bj не нашли ни одного вложения. NodeRef документа " + nodeRef);
         }
+
+        return null;
+    }
+
+    /**
+     * Получаем реальное имя файла
+     *
+     * @param name
+     * @return
+     */
+    private String getRealFileName(String name) {
+        String nameAttachment = "";
+        Pattern pattern = Pattern.compile(">(.*)</a>");
+        Matcher matcher = pattern.matcher(name);
+        if (matcher.find()) {
+            nameAttachment = matcher.group(1);
+        }
+
+        if (StringUtils.isEmpty(nameAttachment)) {
+            nameAttachment = name.substring(name.indexOf(">") + 1, name.length() - 5);
+        }
+        return nameAttachment;
+    }
+
+    /**
+     * Проверяем, что найденый файл того же типа, что и тот который упоминался в БЖ
+     *
+     * @param attachment
+     * @param type
+     * @return
+     */
+    private boolean typeIsOk(Attachment attachment, String type) {
+        return attachment.getNameAttachment().contains(type);
+    }
+
+    /**
+     * Проверяем разницу между датами создания записи в БЖ и датой последней модификации файлов
+     *
+     * @param bj
+     * @param file
+     * @return
+     */
+    private boolean isDiffIsOk(BjRecord bj, File file) {
+        final long diffTime = bj.getDate().getTime() - file.lastModified();
+        return diffTime <= maxDiffTimeMsBjAndFile;
     }
 }
