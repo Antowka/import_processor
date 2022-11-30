@@ -10,4 +10,5 @@ java -jar importer.jar --date.processing.date=01.10.2021 \
                                       --spring.datasource.bj.password=admin \
                                       --html.file.read.limit.kb=20 \
                                       --threads.limit=10 \
+                                      --time.max.diff.dj.and.file=1000 \
                                       --dictionary.notificationtype.noderef=workspace://SpacesStore/00527524-7653-43c1-b04f-4cb0b1e8dd95
