@@ -104,107 +104,91 @@ try {
     //var document - вложение, передаваемое из js консоли
     var inputObject = JSON.parse(document.content.substring(document.content.indexOf("["), document.content.length()));
 } catch (e) {
-    logger.error("OG2. Error in read json file ." + e);
+    logger.error(e);
 }
 
 run();
 
+
+
 function run() {
     for (var i = 0; i < inputObject.length; i++) {
-        var type = inputObject[i].type;
-        var nodeRef = inputObject[i].nodeRef;
-        var props = propsConverter(inputObject[i].props);
-        var assocs = propsConverter(inputObject[i].assocs);
-        var approvalData = inputObject[i].approvalData;
-        var attachmentsData = inputObject[i].attachmentsData;
 
-        var existDocument = search.findNode(nodeRef);
-        if (existDocument) {
-            logger.error("OG2. Document with ref " + nodeRef + " already exist");
-            if (tryToCreateAttachments) {
-                logger.error("OG2. Try to create attachments for document with ref " + nodeRef);
-                createAttachments(existDocument, attachmentsData);
+        var docObj = inputObject[i];
+        try {
+            var createdDoc = processDocument(docObj);
+            if (!createdDoc || !createdDoc.nodeRef) {
+                logger.error("OG2_IMPORT: FAIL. Doc was not created: " + docObj.nodeRef);
             }
-        } else {
-            rnUtils.doInTransaction(function () {
-                rnUtils.runAs(props["cm:creator"], function () {
-                    try {
-                        logger.error("OG2. Try to create " + nodeRef);
-                        //получим sys:node-uuid
-                        var sysNodeUuid = nodeRef.split("SpacesStore/");
-                        props["sys:node-uuid"] = sysNodeUuid[1];
+        } catch (e) {
+            logger.error("OG2_IMPORT: FAIL. Doc was not created: " + docObj.nodeRef);
+            logger.error(e);
+        }
 
-                        var root = documentScript.getDraftRoot(type);
+    }
+    logger.error("OG2. DONE " + version);
+}
 
-                        if (!dryRun) {
-                            if ("lecm-errands:document" != type) {
-                                var newDocument = root.createNode(props["cm:name"] + new Date().getTime(), type, props);
-                            } else {
-                                //для поручений надо сразу создавать док с асоками
-                                //способ записи для асок assoc_lecm-errands_category-assoc
-                                //способ записи для пропери prop_lecm-errands_is-external-control
-                                var errand = {};
+function processDocument(docObj) {
+    var type = docObj.type;
+    var nodeRef =docObj.nodeRef;
+    var props = propsConverter(docObj.props);
+    var assocs = propsConverter(docObj.assocs);
+    var approvalData = docObj.approvalData;
+    var attachmentsData = docObj.attachmentsData;
 
-                                for (var propName in props) {
-                                    switch (propName) {
-                                        case "cm:name":
-                                            errand["prop_" + propName.replace(":", "_")] = props[propName] + new Date().getTime();
-                                            break;
-                                        case "lecm-errands:limitation-date":
-                                            //в атрибуте lecm-errands:limitation-date может храниться как дата, так как и текст и массив
-                                            if (date_regex.test(props[propName])) {
-                                                errand["prop_" + propName.replace(":", "_")] = props[propName];
-                                            }
-                                            break;
-                                        default:
+    var existDocument = search.findNode(nodeRef);
+    if (existDocument) {
+        logger.error("OG2. Document with ref " + nodeRef + " already exist");
+        if (tryToCreateAttachments) {
+            logger.error("OG2. Try to create attachments for document with ref " + nodeRef);
+            createAttachments(existDocument, attachmentsData);
+        }
+        return existDocument;
+    } else {
+        var newDocument;
+        rnUtils.doInTransaction(false, true, function () {
+            rnUtils.runAs(props["cm:creator"], function () {
+                try {
+                    logger.error("OG2. Try to create " + nodeRef);
+                    //получим sys:node-uuid
+                    var sysNodeUuid = nodeRef.split("SpacesStore/");
+                    props["sys:node-uuid"] = sysNodeUuid[1];
+
+                    var root = documentScript.getDraftRoot(type);
+
+                    if (!dryRun) {
+                        if ("lecm-errands:document" != type) {
+                            newDocument = root.createNode(props["cm:name"] + new Date().getTime(), type, props);
+                        } else {
+                            //для поручений надо сразу создавать док с асоками
+                            //способ записи для асок assoc_lecm-errands_category-assoc
+                            //способ записи для пропери prop_lecm-errands_is-external-control
+                            var errand = {};
+
+                            for (var propName in props) {
+                                switch (propName) {
+                                    case "cm:name":
+                                        errand["prop_" + propName.replace(":", "_")] = props[propName] + new Date().getTime();
+                                        break;
+                                    case "lecm-errands:limitation-date":
+                                        //в атрибуте lecm-errands:limitation-date может храниться как дата, так как и текст и массив
+                                        if (date_regex.test(props[propName])) {
                                             errand["prop_" + propName.replace(":", "_")] = props[propName];
-                                            break;
-                                    }
+                                        }
+                                        break;
+                                    default:
+                                        errand["prop_" + propName.replace(":", "_")] = props[propName];
+                                        break;
                                 }
-
-                                errand["prop_lecm-eds-aspect_importer-code"] = "lb";
-
-                                if (props["lecm-document:regnum"]) {
-                                    errand["prop_lecm-eds-aspect_regnum-after-script-create-doc"] = props["lecm-document:regnum"];
-                                }
-
-                                for (var assocName in assocs) {
-                                    //values - текстовые представления асок. Нужно превести их в объекты
-                                    var values = assocs[assocName].split(";");
-                                    if (values && values.length) {
-                                        values.forEach(function (textValue) {
-                                            //находим значение в соответствующем справочнике
-                                            var value = getValue(assocName, textValue);
-                                            if (value) {
-                                                errand["assoc_" + assocName.replace(":", "_")] = value.nodeRef + "";
-                                                //на момент 12.10.2022 неправильно мапится атрибут
-                                                //нужно lecm-errands:base-assoc, а в json lecm-errands:base-document-assoc
-                                                //чтобы не пределывать json пока сделаем подмену
-                                                if (assocName == "lecm-errands:base-document-assoc") {
-                                                    errand["assoc_lecm-errands_base-assoc"] = value.nodeRef + "";
-                                                }
-                                            } else {
-                                                logger.error("OG2. For assocName " + assocName + " and value " + textValue + " item not found. Document with ref " + nodeRef);
-                                            }
-                                        });
-                                    }
-                                }
-
-                                var newDocument = errands.createErrandsSync(errand);
                             }
 
-                            if ("lecm-errands:document" != type) {
-                                //отдельно сохраняем регномер, чтобы выдать его после того как док будет зареган
-                                if (props["lecm-document:regnum"]) {
-                                    newDocument.properties["lecm-eds-aspect:regnum-after-script-create-doc"] = props["lecm-document:regnum"];
-                                }
-                                newDocument.properties["lecm-eds-aspect:importer-code"] = "lb";
-                                newDocument.save();
-                            }
-                        }
+                            errand["prop_lecm-eds-aspect_importer-code"] = "lb";
 
-                        //асоки
-                        if (Object.keys(assocs).length && "lecm-errands:document" != type) {
+                            if (props["lecm-document:regnum"]) {
+                                errand["prop_lecm-eds-aspect_regnum-after-script-create-doc"] = props["lecm-document:regnum"];
+                            }
+
                             for (var assocName in assocs) {
                                 //values - текстовые представления асок. Нужно превести их в объекты
                                 var values = assocs[assocName].split(";");
@@ -213,8 +197,12 @@ function run() {
                                         //находим значение в соответствующем справочнике
                                         var value = getValue(assocName, textValue);
                                         if (value) {
-                                            if (!dryRun) {
-                                                newDocument.createAssociation(value, assocName);
+                                            errand["assoc_" + assocName.replace(":", "_")] = value.nodeRef + "";
+                                            //на момент 12.10.2022 неправильно мапится атрибут
+                                            //нужно lecm-errands:base-assoc, а в json lecm-errands:base-document-assoc
+                                            //чтобы не пределывать json пока сделаем подмену
+                                            if (assocName == "lecm-errands:base-document-assoc") {
+                                                errand["assoc_lecm-errands_base-assoc"] = value.nodeRef + "";
                                             }
                                         } else {
                                             logger.error("OG2. For assocName " + assocName + " and value " + textValue + " item not found. Document with ref " + nodeRef);
@@ -222,28 +210,61 @@ function run() {
                                     });
                                 }
                             }
+
+                            newDocument = errands.createErrandsSync(errand);
                         }
 
-                        //согласование
-                        if (!dryRun && "lecm-errands:document" != type) {
-                            createApprovalRoute(newDocument, approvalData);
+                        if ("lecm-errands:document" != type) {
+                            //отдельно сохраняем регномер, чтобы выдать его после того как док будет зареган
+                            if (props["lecm-document:regnum"]) {
+                                newDocument.properties["lecm-eds-aspect:regnum-after-script-create-doc"] = props["lecm-document:regnum"];
+                            }
+                            newDocument.properties["lecm-eds-aspect:importer-code"] = "lb";
+                            newDocument.save();
                         }
-
-                        if (!dryRun && tryToCreateAttachments) {
-                            logger.error("OG2. Try to create attachments for document with ref " + nodeRef);
-                            createAttachments(newDocument, attachmentsData);
-                        }
-
-                        logger.error("OG2. Document with ref " + nodeRef + " created");
-
-                    } catch (e) {
-                        logger.error("OG2. Error while creating document with ref " + nodeRef + ". " + e);
                     }
-                });
+
+                    //асоки
+                    if (Object.keys(assocs).length && "lecm-errands:document" != type) {
+                        for (var assocName in assocs) {
+                            //values - текстовые представления асок. Нужно превести их в объекты
+                            var values = assocs[assocName].split(";");
+                            if (values && values.length) {
+                                values.forEach(function (textValue) {
+                                    //находим значение в соответствующем справочнике
+                                    var value = getValue(assocName, textValue);
+                                    if (value) {
+                                        if (!dryRun) {
+                                            newDocument.createAssociation(value, assocName);
+                                        }
+                                    } else {
+                                        logger.error("OG2. For assocName " + assocName + " and value " + textValue + " item not found. Document with ref " + nodeRef);
+                                    }
+                                });
+                            }
+                        }
+                    }
+
+                    //согласование
+                    if (!dryRun && "lecm-errands:document" != type) {
+                        createApprovalRoute(newDocument, approvalData);
+                    }
+
+                    logger.error("OG2. Document with ref " + nodeRef + " created");
+
+                } catch (e) {
+                    logger.error("OG2. Error while creating document with ref " + nodeRef + ". " + e);
+                }
             });
+        });
+
+        if (newDocument && !dryRun && tryToCreateAttachments) {
+            logger.error("OG2. Try to create attachments for document with ref " + nodeRef);
+            createAttachments(newDocument, attachmentsData);
         }
+
+        return newDocument;
     }
-    logger.error("OG2. DONE " + version);
 }
 
 function createApprovalRoute(document, approvalData) {
