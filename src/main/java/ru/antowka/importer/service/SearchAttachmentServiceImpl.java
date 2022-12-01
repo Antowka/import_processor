@@ -1,6 +1,5 @@
 package ru.antowka.importer.service;
 
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,6 +15,7 @@ import ru.antowka.importer.model.Path;
 import ru.antowka.importer.utils.FileUtils;
 
 import java.io.File;
+import java.sql.Timestamp;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -133,6 +133,12 @@ public class SearchAttachmentServiceImpl implements SearchAttachmentService {
                     if (typeIsOk(attachment, type)) {
                         if (isDiffIsOk(bj, file)) {
                             Path path = new Path();
+
+                            //для отладочной информации
+                            path.setLastModificationDate(new Timestamp(file.lastModified()).toString());
+                            path.setBjDate(bj.getDate().toString());
+                            path.setDiffDateMs(String.valueOf(bj.getDate().getTime() - file.lastModified()));
+
                             path.setPath(file.toPath().toString());
                             path.setType(type);
                             paths.add(path);
@@ -199,6 +205,6 @@ public class SearchAttachmentServiceImpl implements SearchAttachmentService {
      */
     private boolean isDiffIsOk(BjRecord bj, File file) {
         final long diffTime = bj.getDate().getTime() - file.lastModified();
-        return diffTime <= maxDiffTimeMsBjAndFile;
+        return diffTime >= 0 && diffTime <= maxDiffTimeMsBjAndFile;
     }
 }

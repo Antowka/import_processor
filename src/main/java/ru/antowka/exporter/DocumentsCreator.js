@@ -357,12 +357,33 @@ function createAttachments(document, attachmentsData) {
             var nameLength = name.length - 4;
             for (var j = 0; j < paths.length; j++) {
 
-                name = name.substring(0, nameLength) + j + ".pdf";
+                var mimeType;
+                switch (paths[j].type) {
+
+                    case 'pdf':
+                        mimeType = "application/pdf";
+                        break;
+
+                    case 'docx':
+                        mimeType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+                        break
+
+                    case 'xlsx':
+                        mimeType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+                        break;
+
+                    default:
+                        continue;
+
+                }
+
+                name = name.substring(0, nameLength) + j + "." + paths[j].type;
+
                 //Распарисить пассы;
                 var storePathRelative = paths[j].path.substring((paths[j].path.indexOf("contentstore", 0) + 12));
                 var url = "store:/" + storePathRelative;
                 var fileSize = new Packages.java.io.File('/opt/infooborot/alf_data/contentstore' + storePathRelative).length();
-                var contentData = new org.alfresco.service.cmr.repository.ContentData(url, "application/pdf", fileSize, "UTF-8", new Packages.java.util.Locale("RU_ru"));
+                var contentData = new org.alfresco.service.cmr.repository.ContentData(url, mimeType, fileSize, "UTF-8", new Packages.java.util.Locale("RU_ru"));
 
                 if (initiatorLogin && initiatorLogin) {
                     //rnUtils.runAs(initiatorLogin, function () {

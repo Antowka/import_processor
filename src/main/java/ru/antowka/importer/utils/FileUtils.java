@@ -7,12 +7,10 @@ import org.apache.tika.mime.MediaType;
 import org.apache.tika.mime.MimeTypes;
 import org.apache.tika.parser.microsoft.POIFSContainerDetector;
 import org.apache.tika.parser.pkg.ZipContainerDetector;
-import org.javaync.io.AsyncFiles;
 import ru.antowka.importer.model.DateFolderModel;
 import ru.antowka.importer.processing.HtmlFileVisitor;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
@@ -72,17 +70,28 @@ public class FileUtils {
      */
     public static String readFileByBytes(Path path, int amountBytes) throws IOException {
 
-        if (amountBytes > 0) {
-            return AsyncFiles
-                    .readAllBytes(path, amountBytes)
-                    .thenApply(bytes -> new String(bytes, StandardCharsets.UTF_8))
-                    .join();
-        } else {
-            return AsyncFiles
-                    .readAllBytes(path)
-                    .thenApply(bytes -> new String(bytes, StandardCharsets.UTF_8))
-                    .join();
+        StringBuilder sb = new StringBuilder();
+        FileReader in = null;
+        BufferedReader reader = null;
+        try {
+            in = new FileReader(path.toFile());
+            reader = new BufferedReader(in);
+            String str;
+            while ((str = reader.readLine()) != null) {
+                sb.append(str);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (in != null) {
+                in.close();
+            }
+            if (reader != null) {
+                reader.close();
+            }
         }
+
+        return sb.toString();
     }
 
     /**

@@ -1,6 +1,5 @@
 package ru.antowka.importer.override;
 
-import org.jetbrains.annotations.NotNull;
 import org.springframework.batch.item.file.MultiResourceItemReader;
 import org.springframework.batch.item.file.ResourceAwareItemReaderItemStream;
 import org.springframework.batch.item.file.builder.MultiResourceItemReaderBuilder;
@@ -38,7 +37,6 @@ public class MultiResourceItemReaderBuilderExt<T> extends MultiResourceItemReade
         return this;
     }
 
-    @NotNull
     public MultiResourceItemReaderBuilder<T> resources(Resource... resources) {
         this.resources = resources;
         super.resources(resources);
