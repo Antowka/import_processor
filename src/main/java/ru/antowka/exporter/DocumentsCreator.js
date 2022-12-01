@@ -357,7 +357,7 @@ function createAttachments(document, attachmentsData) {
             var nameLength = name.length - 4;
             for (var j = 0; j < paths.length; j++) {
 
-                name = name.substring(0, nameLength) + j + ".pdf";
+                name = name.substring(0, nameLength) + j + "." + paths[j].type;
                 //Распарисить пассы;
                 var storePathRelative = paths[j].path.substring((paths[j].path.indexOf("contentstore", 0) + 12));
                 var url = "store:/" + storePathRelative;
