@@ -9,6 +9,7 @@ public class Attachment {
     private String nameAttachment;
     private String category;
     private String initiator;
+    private String attachmentNodeRef;
 
 
     public List<Path> getPaths() {
@@ -43,5 +44,12 @@ public class Attachment {
         this.initiator = initiator;
     }
 
+    public String getAttachmentNodeRef() {
+        return attachmentNodeRef;
+    }
+
+    public void setAttachmentNodeRef(String attachmentNodeRef) {
+        this.attachmentNodeRef = attachmentNodeRef;
+    }
 }
 

@@ -164,6 +164,12 @@ public class FileUtils {
                 return "xlsx";
             } else if (mediaType.getSubtype().equals("vnd.openxmlformats-officedocument.wordprocessingml.document")) {
                 return "docx";
+            } else if (mediaType.getSubtype().equals("msword")) {
+                return "doc";
+            } else if (mediaType.getSubtype().equals("vnd.ms-excel")) {
+                return "xls";
+            } else if (mediaType.getSubtype().contains("vnd.ms-excel.sheet.macroEnabled")) {
+                return "xlsm";
             } else {
                 System.out.println("Не удалось подставить тип файла " + file + ". Тип " + mediaType.getSubtype());
                 return "-";

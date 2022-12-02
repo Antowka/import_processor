@@ -7,8 +7,10 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+import ru.antowka.importer.entitiy.AttachmentSolrRecord;
 import ru.antowka.importer.entitiy.BjRecord;
 import ru.antowka.importer.mapper.AttachmentRowMapper;
+import ru.antowka.importer.mapper.AttachmentSolrMapper;
 import ru.antowka.importer.model.Attachment;
 import ru.antowka.importer.model.DateFolderModel;
 import ru.antowka.importer.model.Path;
@@ -20,6 +22,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class SearchAttachmentServiceImpl implements SearchAttachmentService {
@@ -27,6 +30,10 @@ public class SearchAttachmentServiceImpl implements SearchAttachmentService {
     @Autowired
     @Qualifier("bjJdbcTemplate")
     private JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    @Qualifier("h2JdbcTemplate")
+    private JdbcTemplate h2JdbcTemplate;
 
     /**
      * Абсолютный путь к contentstore
@@ -45,6 +52,8 @@ public class SearchAttachmentServiceImpl implements SearchAttachmentService {
     }
 
     public List<Attachment> searchAttachmentsDocument(String nodeRef) {
+
+        final List<AttachmentSolrRecord> result = h2JdbcTemplate.query("SELECT * FROM attachments", new AttachmentSolrMapper());
 
         List<BjRecord> bjList = getBJRecordsFromDBSortByDate(nodeRef);
         List<Attachment> attachmentList = new ArrayList<>();
@@ -113,16 +122,25 @@ public class SearchAttachmentServiceImpl implements SearchAttachmentService {
         final java.nio.file.Path path1 = FileUtils.buildPathByDate(pathToContentStore, bj.getDate(), null);
 
         File dir1 = path1.toFile();
-        File[] arr1Files = dir1.listFiles();
+        File[] arrFiles = dir1.listFiles();
 
-        if (arr1Files != null && arr1Files.length > 0) {
+        if (arrFiles != null && arrFiles.length > 0) {
+
             System.out.println("Для документа " + nodeRef + " найдены папки с вложениями: ");
             System.out.println("  - " + path1);
+            Stream<File> streamOfFiles = Arrays.stream(arrFiles);
 
-            File[] arrFiles = new File[arr1Files.length];
-            System.arraycopy(arr1Files, 0, arrFiles, 0, arr1Files.length);
+            //ищем в данные в выгрузке из солара
+            String attachmentNodeRef = getAttachmentNodeRef(name);
+            final AttachmentSolrRecord attachmentInDataFromSolr = findAttachmentInDataFromSolr(attachmentNodeRef);
 
-            List<File> lst = Arrays.stream(arrFiles)
+            attachment.setAttachmentNodeRef(attachmentNodeRef);
+
+            if (Objects.nonNull(attachmentInDataFromSolr)) {
+                streamOfFiles = streamOfFiles.filter(file -> file.length() == attachmentInDataFromSolr.getSize());
+            }
+
+            List<File> lst = streamOfFiles
                     .sorted(Comparator.comparingLong(File::lastModified))
                     .collect(Collectors.toList());
 
@@ -165,6 +183,19 @@ public class SearchAttachmentServiceImpl implements SearchAttachmentService {
         return null;
     }
 
+    private AttachmentSolrRecord findAttachmentInDataFromSolr(String attachmentNodeRef) {
+
+        final List<AttachmentSolrRecord> attsFromSolr = h2JdbcTemplate.query("SELECT * FROM attachments WHERE att_ref ='" + attachmentNodeRef + "'", new AttachmentSolrMapper());
+
+        System.out.println("Найдено для " + attachmentNodeRef + " вложений в данных солра:" + attsFromSolr.size());
+        if (!CollectionUtils.isEmpty(attsFromSolr) && attsFromSolr.size() == 1) {
+            return attsFromSolr.get(0);
+        }
+
+        System.out.println("Данные по выгрузки из Solr не найдены по " + attachmentNodeRef);
+        return null;
+    }
+
     /**
      * Получаем реальное имя файла
      *
@@ -183,6 +214,17 @@ public class SearchAttachmentServiceImpl implements SearchAttachmentService {
             nameAttachment = name.substring(name.indexOf(">") + 1, name.length() - 5);
         }
         return nameAttachment;
+    }
+
+    public String getAttachmentNodeRef(String name) {
+        String attachmentNodeRef = "";
+        Pattern pattern = Pattern.compile("nodeRef=(.*)\"");
+        Matcher matcher = pattern.matcher(name);
+        if (matcher.find()) {
+            attachmentNodeRef = matcher.group(1);
+        }
+
+        return attachmentNodeRef;
     }
 
     /**
