@@ -53,8 +53,6 @@ public class SearchAttachmentServiceImpl implements SearchAttachmentService {
 
     public List<Attachment> searchAttachmentsDocument(String nodeRef) {
 
-        final List<AttachmentSolrRecord> result = h2JdbcTemplate.query("SELECT * FROM attachments", new AttachmentSolrMapper());
-
         List<BjRecord> bjList = getBJRecordsFromDBSortByDate(nodeRef);
         List<Attachment> attachmentList = new ArrayList<>();
 
